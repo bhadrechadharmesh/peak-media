@@ -49,7 +49,7 @@ const FEATURES: Feature[] = [
   {
     icon: Zap,
     title: "Creative velocity",
-    body: "50+ ad variations shipped every month — tested, learned, retired, replaced. Weekly, not quarterly.",
+    body: "50+ ad variations shipped every month, festive-ready — tested, learned, retired, replaced. Weekly, not quarterly.",
   },
   {
     icon: TrendingUp,
@@ -59,12 +59,12 @@ const FEATURES: Feature[] = [
   {
     icon: Activity,
     title: "Always-on optimization",
-    body: "Daily reviews of spend, creative and funnel. Budgets shift the morning something stops working.",
+    body: "Daily IST reviews of spend, creative and funnel. Budgets shift the morning something stops working.",
   },
 ];
 
 const ROTATING_STATS = [
-  { value: "$2.4B+", label: "Revenue influenced" },
+  { value: "₹4,100Cr+", label: "Revenue influenced" },
   { value: "312%", label: "Average ROAS" },
   { value: "50+", label: "Ad variations / month" },
   { value: "<24h", label: "Campaign launch SLA" },

@@ -1,0 +1,763 @@
+     1→"use client";
+     2→
+     3→import * as React from "react";
+     4→import { AnimatePresence, motion } from "framer-motion";
+     5→import { format } from "date-fns";
+     6→import {
+     7→  ArrowLeft,
+     8→  ArrowRight,
+     9→  CalendarDays,
+    10→  Check,
+    11→  CheckCircle2,
+    12→  Clock,
+    13→  Mail,
+    14→  MapPin,
+    15→  MessageSquare,
+    16→  Phone,
+    17→  Plus,
+    18→  Sparkles,
+    19→} from "lucide-react";
+    20→import { toast } from "sonner";
+    21→
+    22→import { cn } from "@/lib/utils";
+    23→import { fadeUp, viewportOnce } from "@/lib/motion";
+    24→import { Reveal } from "@/components/peak/ui/reveal";
+    25→import { SectionShell } from "@/components/peak/ui/section-shell";
+    26→import { SectionHeading } from "@/components/peak/ui/section-heading";
+    27→import { MagneticButton } from "@/components/peak/ui/magnetic-button";
+    28→import { Button } from "@/components/ui/button";
+    29→import { Input } from "@/components/ui/input";
+    30→import { Textarea } from "@/components/ui/textarea";
+    31→import { Label } from "@/components/ui/label";
+    32→import { Progress } from "@/components/ui/progress";
+    33→import {
+    34→  Popover,
+    35→  PopoverContent,
+    36→  PopoverTrigger,
+    37→} from "@/components/ui/popover";
+    38→import { Calendar } from "@/components/ui/calendar";
+    39→
+    40→/* ----------------------------- types & config ---------------------------- */
+    41→
+    42→type FormState = {
+    43→  name: string;
+    44→  email: string;
+    45→  company: string;
+    46→  role: string;
+    47→  services: string[];
+    48→  budget: string;
+    49→  goals: string;
+    50→  date: Date | undefined;
+    51→  timeSlot: string;
+    52→  message: string;
+    53→};
+    54→
+    55→const SERVICES = [
+    56→  "Branding",
+    57→  "SEO",
+    58→  "Social",
+    59→  "Paid Ads",
+    60→  "Web Design",
+    61→  "Content",
+    62→] as const;
+    63→
+    64→const BUDGETS = ["<$5k", "$5k–$15k", "$15k–$50k", "$50k+"] as const;
+    65→
+    66→const TIME_SLOTS = ["Morning", "Afternoon", "Evening"] as const;
+    67→
+    68→const STEPS = ["About you", "Your project", "Schedule"] as const;
+    69→
+    70→const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    71→
+    72→/* ------------------------------ helpers ------------------------------ */
+    73→
+    74→function isStepValid(step: number, f: FormState): boolean {
+    75→  if (step === 0) {
+    76→    return (
+    77→      f.name.trim().length > 1 &&
+    78→      EMAIL_RE.test(f.email) &&
+    79→      f.company.trim().length > 0 &&
+    80→      f.role.trim().length > 0
+    81→    );
+    82→  }
+    83→  if (step === 1) {
+    84→    return f.services.length > 0 && f.budget.length > 0;
+    85→  }
+    86→  // step 2
+    87→  return !!f.date && f.timeSlot.length > 0;
+    88→}
+    89→
+    90→/* ------------------------------ component ------------------------------ */
+    91→
+    92→export function Contact() {
+    93→  const [step, setStep] = React.useState(0);
+    94→  const [submitting, setSubmitting] = React.useState(false);
+    95→  const [done, setDone] = React.useState(false);
+    96→  const [form, setForm] = React.useState<FormState>({
+    97→    name: "",
+    98→    email: "",
+    99→    company: "",
+   100→    role: "",
+   101→    services: [],
+   102→    budget: "",
+   103→    goals: "",
+   104→    date: undefined,
+   105→    timeSlot: "",
+   106→    message: "",
+   107→  });
+   108→
+   109→  const set = <K extends keyof FormState>(key: K, value: FormState[K]) =>
+   110→    setForm((s) => ({ ...s, [key]: value }));
+   111→
+   112→  const toggleService = (s: string) =>
+   113→    setForm((p) => ({
+   114→      ...p,
+   115→      services: p.services.includes(s)
+   116→        ? p.services.filter((x) => x !== s)
+   117→        : [...p.services, s],
+   118→    }));
+   119→
+   120→  const canNext = isStepValid(step, form);
+   121→  const progress = ((step + 1) / STEPS.length) * 100;
+   122→
+   123→  async function onSubmit() {
+   124→    if (!canNext) return;
+   125→    setSubmitting(true);
+   126→    try {
+   127→      const composedMessage = [
+   128→        form.goals && `Project goals: ${form.goals}`,
+   129→        form.timeSlot && `Preferred time: ${form.timeSlot}`,
+   130→        form.message && `Note: ${form.message}`,
+   131→      ]
+   132→        .filter(Boolean)
+   133→        .join("\n\n");
+   134→
+   135→      const res = await fetch("/api/contact", {
+   136→        method: "POST",
+   137→        headers: { "Content-Type": "application/json" },
+   138→        body: JSON.stringify({
+   139→          name: form.name,
+   140→          email: form.email,
+   141→          company: form.company,
+   142→          services: form.services,
+   143→          budget: form.budget,
+   144→          message: composedMessage,
+   145→          date: form.date ? form.date.toISOString() : null,
+   146→        }),
+   147→      });
+   148→      if (!res.ok) throw new Error("bad");
+   149→      setDone(true);
+   150→      toast.success("Submission received", {
+   151→        description: "We'll reach out within 1 business day.",
+   152→      });
+   153→    } catch {
+   154→      toast.error("Something went wrong", {
+   155→        description: "Please try again or email hello@peakmedia.agency.",
+   156→      });
+   157→    } finally {
+   158→      setSubmitting(false);
+   159→    }
+   160→  }
+   161→
+   162→  function resetAll() {
+   163→    setForm({
+   164→      name: "",
+   165→      email: "",
+   166→      company: "",
+   167→      role: "",
+   168→      services: [],
+   169→      budget: "",
+   170→      goals: "",
+   171→      date: undefined,
+   172→      timeSlot: "",
+   173→      message: "",
+   174→    });
+   175→    setStep(0);
+   176→    setDone(false);
+   177→  }
+   178→
+   179→  return (
+   180→    <SectionShell id="contact" className="relative overflow-hidden">
+   181→      {/* decorative orbs */}
+   182→      <div
+   183→        aria-hidden
+   184→        className="pointer-events-none absolute -left-32 top-24 h-72 w-72 rounded-full bg-electric/20 blur-[120px]"
+   185→      />
+   186→      <div
+   187→        aria-hidden
+   188→        className="pointer-events-none absolute -right-24 bottom-0 h-80 w-80 rounded-full bg-electric-soft/15 blur-[140px]"
+   189→      />
+   190→
+   191→      <SectionHeading
+   192→        eyebrow="Start a project"
+   193→        title={
+   194→          <>
+   195→            Let&apos;s build your <span className="text-gradient">growth engine</span>
+   196→          </>
+   197→        }
+   198→        description="Tell us where you are and where you want to go. We'll turn it into a measurable plan within one business day."
+   199→      />
+   200→
+   201→      <div className="mt-14 grid grid-cols-1 gap-6 lg:grid-cols-[1.4fr_1fr] lg:gap-8">
+   202→        {/* ------------------------------ LEFT: form ------------------------------ */}
+   203→        <Reveal variants={fadeUp} className="h-full">
+   204→          <div className="glass relative h-full overflow-hidden rounded-3xl p-6 sm:p-8">
+   205→            <div
+   206→              aria-hidden
+   207→              className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-electric/60 to-transparent"
+   208→            />
+   209→
+   210→            <AnimatePresence mode="wait">
+   211→              {done ? (
+   212→                <motion.div
+   213→                  key="success"
+   214→                  initial={{ opacity: 0, scale: 0.95 }}
+   215→                  animate={{ opacity: 1, scale: 1 }}
+   216→                  exit={{ opacity: 0, scale: 0.95 }}
+   217→                  transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+   218→                  className="flex min-h-[460px] flex-col items-center justify-center text-center"
+   219→                >
+   220→                  <motion.div
+   221→                    initial={{ scale: 0, rotate: -30 }}
+   222→                    animate={{ scale: 1, rotate: 0 }}
+   223→                    transition={{
+   224→                      type: "spring",
+   225→                      stiffness: 200,
+   226→                      damping: 14,
+   227→                      delay: 0.1,
+   228→                    }}
+   229→                    className="relative mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-electric/15 text-electric glow-sm"
+   230→                  >
+   231→                    <span
+   232→                      aria-hidden
+   233→                      className="absolute inset-0 animate-ping rounded-full bg-electric/30"
+   234→                      style={{ animationDuration: "2.4s" }}
+   235→                    />
+   236→                    <Check className="relative h-10 w-10" strokeWidth={2.5} />
+   237→                  </motion.div>
+   238→                  <h3 className="font-display text-2xl font-semibold sm:text-3xl">
+   239→                    Thanks, {form.name.split(" ")[0] || "there"}.
+   240→                  </h3>
+   241→                  <p className="mt-3 max-w-sm text-balance text-sm text-muted-foreground sm:text-base">
+   242→                    We&apos;ll reach out within{" "}
+   243→                    <span className="text-foreground">1 business day</span> to
+   244→                    schedule your strategy call.
+   245→                  </p>
+   246→                  <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
+   247→                    <MagneticButton
+   248→                      variant="gradient"
+   249→                      size="md"
+   250→                      onClick={resetAll}
+   251→                    >
+   252→                      <Plus className="h-4 w-4" /> Book another project
+   253→                    </MagneticButton>
+   254→                    <Button variant="outline" asChild>
+   255→                      <a href="#faq">Read the FAQ</a>
+   256→                    </Button>
+   257→                  </div>
+   258→                </motion.div>
+   259→              ) : (
+   260→                <motion.div
+   261→                  key="form"
+   262→                  initial={{ opacity: 0 }}
+   263→                  animate={{ opacity: 1 }}
+   264→                  exit={{ opacity: 0 }}
+   265→                  transition={{ duration: 0.25 }}
+   266→                >
+   267→                  {/* progress */}
+   268→                  <div className="mb-7">
+   269→                    <div className="mb-2 flex items-center justify-between text-xs">
+   270→                      <span className="font-medium uppercase tracking-[0.18em] text-electric">
+   271→                        Step {step + 1} / {STEPS.length} · {STEPS[step]}
+   272→                      </span>
+   273→                      <span className="text-muted-foreground">
+   274→                        {Math.round(progress)}% complete
+   275→                      </span>
+   276→                    </div>
+   277→                    <Progress
+   278→                      value={progress}
+   279→                      className="h-1.5 bg-white/10 [&>div]:bg-gradient-to-r [&>div]:from-electric-soft [&>div]:via-electric [&>div]:to-electric-2"
+   280→                    />
+   281→                    <div className="mt-3 flex gap-2">
+   282→                      {STEPS.map((label, i) => (
+   283→                        <button
+   284→                          key={label}
+   285→                          type="button"
+   286→                          onClick={() => {
+   287→                            if (i < step || (i === step + 1 && canNext))
+   288→                              setStep(i);
+   289→                          }}
+   290→                          disabled={i > step && !(i <= step + 1 && canNext)}
+   291→                          className={cn(
+   292→                            "flex-1 rounded-md border px-2 py-1.5 text-[10px] font-medium uppercase tracking-wider transition-all sm:text-xs",
+   293→                            i === step
+   294→                              ? "border-electric/40 bg-electric/10 text-electric"
+   295→                              : i < step
+   296→                                ? "border-white/10 bg-white/5 text-muted-foreground hover:text-foreground"
+   297→                                : "border-white/5 bg-transparent text-muted-foreground/50"
+   298→                          )}
+   299→                        >
+   300→                          {i < step && <Check className="mr-1 inline h-3 w-3" />}
+   301→                          {label}
+   302→                        </button>
+   303→                      ))}
+   304→                    </div>
+   305→                  </div>
+   306→
+   307→                  <AnimatePresence mode="wait" initial={false}>
+   308→                    <motion.div
+   309→                      key={step}
+   310→                      initial={{ opacity: 0, x: 24 }}
+   311→                      animate={{ opacity: 1, x: 0 }}
+   312→                      exit={{ opacity: 0, x: -24 }}
+   313→                      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+   314→                    >
+   315→                      {/* ---------- STEP 1: About you ---------- */}
+   316→                      {step === 0 && (
+   317→                        <div className="space-y-4">
+   318→                          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+   319→                            <Field label="Full name" htmlFor="cf-name">
+   320→                              <Input
+   321→                                id="cf-name"
+   322→                                value={form.name}
+   323→                                onChange={(e) =>
+   324→                                  set("name", e.target.value)
+   325→                                }
+   326→                                placeholder="Jordan Avery"
+   327→                                autoComplete="name"
+   328→                              />
+   329→                            </Field>
+   330→                            <Field
+   331→                              label="Work email"
+   332→                              htmlFor="cf-email"
+   333→                              invalid={
+   334→                                form.email.length > 0 &&
+   335→                                !EMAIL_RE.test(form.email)
+   336→                              }
+   337→                            >
+   338→                              <Input
+   339→                                id="cf-email"
+   340→                                type="email"
+   341→                                value={form.email}
+   342→                                onChange={(e) =>
+   343→                                  set("email", e.target.value)
+   344→                                }
+   345→                                placeholder="jordan@company.com"
+   346→                                autoComplete="email"
+   347→                                className={
+   348→                                  form.email.length > 0 &&
+   349→                                  !EMAIL_RE.test(form.email)
+   350→                                    ? "border-destructive/60"
+   351→                                    : ""
+   352→                                }
+   353→                              />
+   354→                            </Field>
+   355→                          </div>
+   356→                          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+   357→                            <Field label="Company" htmlFor="cf-company">
+   358→                              <Input
+   359→                                id="cf-company"
+   360→                                value={form.company}
+   361→                                onChange={(e) =>
+   362→                                  set("company", e.target.value)
+   363→                                }
+   364→                                placeholder="Northwind Inc."
+   365→                                autoComplete="organization"
+   366→                              />
+   367→                            </Field>
+   368→                            <Field label="Role" htmlFor="cf-role">
+   369→                              <Input
+   370→                                id="cf-role"
+   371→                                value={form.role}
+   372→                                onChange={(e) =>
+   373→                                  set("role", e.target.value)
+   374→                                }
+   375→                                placeholder="Head of Growth"
+   376→                                autoComplete="organization-title"
+   377→                              />
+   378→                            </Field>
+   379→                          </div>
+   380→                          <p className="flex items-center gap-2 pt-1 text-xs text-muted-foreground">
+   381→                            <Sparkles className="h-3.5 w-3.5 text-electric" />
+   382→                            We respect your inbox — no spam, ever.
+   383→                          </p>
+   384→                        </div>
+   385→                      )}
+   386→
+   387→                      {/* ---------- STEP 2: Project ---------- */}
+   388→                      {step === 1 && (
+   389→                        <div className="space-y-6">
+   390→                          <Field label="Services needed">
+   391→                            <div className="flex flex-wrap gap-2 pt-1">
+   392→                              {SERVICES.map((s) => {
+   393→                                const active = form.services.includes(s);
+   394→                                return (
+   395→                                  <button
+   396→                                    key={s}
+   397→                                    type="button"
+   398→                                    onClick={() => toggleService(s)}
+   399→                                    className={cn(
+   400→                                      "group inline-flex items-center gap-1.5 rounded-full border px-3.5 py-2 text-sm transition-all",
+   401→                                      active
+   402→                                        ? "border-electric bg-electric text-white shadow-[0_0_20px_-6px_var(--electric-glow)]"
+   403→                                        : "border-white/15 bg-white/5 text-muted-foreground hover:border-electric/50 hover:text-foreground"
+   404→                                    )}
+   405→                                  >
+   406→                                    {active ? (
+   407→                                      <Check className="h-3.5 w-3.5" />
+   408→                                    ) : (
+   409→                                      <Plus className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100" />
+   410→                                    )}
+   411→                                    {s}
+   412→                                  </button>
+   413→                                );
+   414→                              })}
+   415→                            </div>
+   416→                          </Field>
+   417→
+   418→                          <Field label="Monthly budget">
+   419→                            <div className="grid grid-cols-2 gap-2 pt-1 sm:grid-cols-4">
+   420→                              {BUDGETS.map((b) => {
+   421→                                const active = form.budget === b;
+   422→                                return (
+   423→                                  <button
+   424→                                    key={b}
+   425→                                    type="button"
+   426→                                    onClick={() => set("budget", b)}
+   427→                                    className={cn(
+   428→                                      "rounded-xl border px-3 py-2.5 text-center text-sm font-medium transition-all",
+   429→                                      active
+   430→                                        ? "border-electric bg-electric/15 text-electric"
+   431→                                        : "border-white/10 bg-white/5 text-muted-foreground hover:border-electric/40 hover:text-foreground"
+   432→                                    )}
+   433→                                  >
+   434→                                    {b}
+   435→                                  </button>
+   436→                                );
+   437→                              })}
+   438→                            </div>
+   439→                          </Field>
+   440→
+   441→                          <Field
+   442→                            label="Project goals"
+   443→                            htmlFor="cf-goals"
+   444→                            optional
+   445→                          >
+   446→                            <Textarea
+   447→                              id="cf-goals"
+   448→                              value={form.goals}
+   449→                              onChange={(e) => set("goals", e.target.value)}
+   450→                              placeholder="e.g. Double qualified pipeline in 6 months while keeping CAC under $240."
+   451→                              className="min-h-24 resize-none"
+   452→                            />
+   453→                          </Field>
+   454→                        </div>
+   455→                      )}
+   456→
+   457→                      {/* ---------- STEP 3: Schedule ---------- */}
+   458→                      {step === 2 && (
+   459→                        <div className="space-y-6">
+   460→                          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+   461→                            <Field label="Preferred date" htmlFor="cf-date">
+   462→                              <Popover>
+   463→                                <PopoverTrigger asChild>
+   464→                                  <Button
+   465→                                    id="cf-date"
+   466→                                    type="button"
+   467→                                    variant="outline"
+   468→                                    className={cn(
+   469→                                      "h-9 w-full justify-start bg-white/5 text-left font-normal",
+   470→                                      !form.date && "text-muted-foreground"
+   471→                                    )}
+   472→                                  >
+   473→                                    <CalendarDays className="h-4 w-4 text-electric" />
+   474→                                    {form.date
+   475→                                      ? format(form.date, "PPP")
+   476→                                      : "Pick a date"}
+   477→                                  </Button>
+   478→                                </PopoverTrigger>
+   479→                                <PopoverContent
+   480→                                  className="w-auto p-0"
+   481→                                  align="start"
+   482→                                >
+   483→                                  <Calendar
+   484→                                    mode="single"
+   485→                                    selected={form.date}
+   486→                                    onSelect={(d) => set("date", d)}
+   487→                                    disabled={(d) => d < new Date()}
+   488→                                    initialFocus
+   489→                                  />
+   490→                                </PopoverContent>
+   491→                              </Popover>
+   492→                            </Field>
+   493→                            <Field label="Time slot">
+   494→                              <div className="grid grid-cols-3 gap-2 pt-0.5">
+   495→                                {TIME_SLOTS.map((t) => {
+   496→                                  const active = form.timeSlot === t;
+   497→                                  return (
+   498→                                    <button
+   499→                                      key={t}
+   500→                                      type="button"
+   501→                                      onClick={() => set("timeSlot", t)}
+   502→                                      className={cn(
+   503→                                        "rounded-lg border px-2 py-2 text-xs font-medium transition-all",
+   504→                                        active
+   505→                                          ? "border-electric bg-electric/15 text-electric"
+   506→                                          : "border-white/10 bg-white/5 text-muted-foreground hover:border-electric/40 hover:text-foreground"
+   507→                                      )}
+   508→                                    >
+   509→                                      {t}
+   510→                                    </button>
+   511→                                  );
+   512→                                })}
+   513→                              </div>
+   514→                            </Field>
+   515→                          </div>
+   516→
+   517→                          <Field
+   518→                            label="Anything else?"
+   519→                            htmlFor="cf-msg"
+   520→                            optional
+   521→                          >
+   522→                            <Textarea
+   523→                              id="cf-msg"
+   524→                              value={form.message}
+   525→                              onChange={(e) =>
+   526→                                set("message", e.target.value)
+   527→                              }
+   528→                              placeholder="Context that'll make our first call sharper — current stack, blockers, timeline."
+   529→                              className="min-h-24 resize-none"
+   530→                            />
+   531→                          </Field>
+   532→
+   533→                          <div className="flex items-start gap-2 rounded-xl border border-electric/20 bg-electric/5 p-3 text-xs text-muted-foreground">
+   534→                            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-electric" />
+   535→                            By submitting, you agree to be contacted by Peak
+   536→                            Media about your project. No spam, unsubscribe
+   537→                            anytime.
+   538→                          </div>
+   539→                        </div>
+   540→                      )}
+   541→                    </motion.div>
+   542→                  </AnimatePresence>
+   543→
+   544→                  {/* nav buttons */}
+   545→                  <div className="mt-7 flex items-center justify-between gap-3">
+   546→                    <Button
+   547→                      type="button"
+   548→                      variant="ghost"
+   549→                      onClick={() => setStep((s) => Math.max(0, s - 1))}
+   550→                      disabled={step === 0}
+   551→                      className="text-muted-foreground"
+   552→                    >
+   553→                      <ArrowLeft className="h-4 w-4" /> Back
+   554→                    </Button>
+   555→
+   556→                    {step < STEPS.length - 1 ? (
+   557→                      <MagneticButton
+   558→                        type="button"
+   559→                        variant="gradient"
+   560→                        size="md"
+   561→                        onClick={() => canNext && setStep((s) => s + 1)}
+   562→                        // disable by passing disabled attr
+   563→                        {...(canNext ? {} : { disabled: true })}
+   564→                      >
+   565→                        Continue <ArrowRight className="h-4 w-4" />
+   566→                      </MagneticButton>
+   567→                    ) : (
+   568→                      <MagneticButton
+   569→                        type="button"
+   570→                        variant="gradient"
+   571→                        size="md"
+   572→                        onClick={onSubmit}
+   573→                        disabled={submitting || !canNext}
+   574→                      >
+   575→                        {submitting ? (
+   576→                          <>
+   577→                            <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+   578→                            Sending…
+   579→                          </>
+   580→                        ) : (
+   581→                          <>
+   582→                            Submit inquiry <ArrowRight className="h-4 w-4" />
+   583→                          </>
+   584→                        )}
+   585→                      </MagneticButton>
+   586→                    )}
+   587→                  </div>
+   588→                </motion.div>
+   589→              )}
+   590→            </AnimatePresence>
+   591→          </div>
+   592→        </Reveal>
+   593→
+   594→        {/* ------------------------------ RIGHT: supporting info ------------------------------ */}
+   595→        <Reveal variants={fadeUp} delay={0.1} className="h-full">
+   596→          <div className="flex h-full flex-col gap-5">
+   597→            {/* what happens next */}
+   598→            <div className="glass rounded-3xl p-6 sm:p-7">
+   599→              <h3 className="font-display text-lg font-semibold">
+   600→                What happens next
+   601→              </h3>
+   602→              <ol className="mt-5 space-y-4">
+   603→                {[
+   604→                  {
+   605→                    n: "1",
+   606→                    t: "Strategy call within 24h",
+   607→                    d: "A senior strategist reviews your goals and audits current performance.",
+   608→                  },
+   609→                  {
+   610→                    n: "2",
+   611→                    t: "Custom growth audit",
+   612→                    d: "We map quick wins, channel mix, and a 90-day plan tailored to you.",
+   613→                  },
+   614→                  {
+   615→                    n: "3",
+   616→                    t: "Proposal in 5 days",
+   617→                    d: "Clear scope, milestones, KPIs, and pricing — no vague retainers.",
+   618→                  },
+   619→                ].map((item, i) => (
+   620→                  <motion.li
+   621→                    key={item.n}
+   622→                    initial={{ opacity: 0, y: 12 }}
+   623→                    whileInView={{ opacity: 1, y: 0 }}
+   624→                    viewport={viewportOnce}
+   625→                    transition={{ delay: i * 0.08, duration: 0.5 }}
+   626→                    className="flex gap-3.5"
+   627→                  >
+   628→                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-electric/15 text-xs font-semibold text-electric">
+   629→                      {item.n}
+   630→                    </span>
+   631→                    <div>
+   632→                      <p className="text-sm font-medium text-foreground">
+   633→                        {item.t}
+   634→                      </p>
+   635→                      <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+   636→                        {item.d}
+   637→                      </p>
+   638→                    </div>
+   639→                  </motion.li>
+   640→                ))}
+   641→              </ol>
+   642→            </div>
+   643→
+   644→            {/* contact methods */}
+   645→            <div className="glass rounded-3xl p-6 sm:p-7">
+   646→              <h3 className="font-display text-lg font-semibold">
+   647→                Other ways to reach us
+   648→              </h3>
+   649→              <ul className="mt-4 space-y-3 text-sm">
+   650→                <li className="flex items-center gap-3">
+   651→                  <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-electric/10 text-electric">
+   652→                    <Mail className="h-4 w-4" />
+   653→                  </span>
+   654→                  <a
+   655→                    href="mailto:hello@peakmedia.agency"
+   656→                    className="text-foreground transition-colors hover:text-electric"
+   657→                  >
+   658→                    hello@peakmedia.agency
+   659→                  </a>
+   660→                </li>
+   661→                <li className="flex items-center gap-3">
+   662→                  <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-electric/10 text-electric">
+   663→                    <Phone className="h-4 w-4" />
+   664→                  </span>
+   665→                  <a
+   666→                    href="tel:+18005551234"
+   667→                    className="text-foreground transition-colors hover:text-electric"
+   668→                  >
+   669→                    +1 (800) 555-1234
+   670→                  </a>
+   671→                </li>
+   672→                <li className="flex items-center gap-3">
+   673→                  <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-electric/10 text-electric">
+   674→                    <MapPin className="h-4 w-4" />
+   675→                  </span>
+   676→                  <span className="text-muted-foreground">
+   677→                    HQ · Brooklyn, NY
+   678→                  </span>
+   679→                </li>
+   680→              </ul>
+   681→
+   682→              <div className="mt-5 flex flex-wrap items-center gap-2">
+   683→                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-xs font-medium text-emerald-300">
+   684→                  <span className="relative flex h-1.5 w-1.5">
+   685→                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-70" />
+   686→                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
+   687→                  </span>
+   688→                  Available now
+   689→                </span>
+   690→                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-muted-foreground">
+   691→                  <Clock className="h-3.5 w-3.5" /> Avg reply 4h
+   692→                </span>
+   693→                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-muted-foreground">
+   694→                  <MessageSquare className="h-3.5 w-3.5" /> Mon–Fri
+   695→                </span>
+   696→              </div>
+   697→            </div>
+   698→
+   699→            {/* decorative map-ish panel */}
+   700→            <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-electric/20 via-ink-2 to-ink p-6 sm:p-7">
+   701→              <div aria-hidden className="absolute inset-0 grid-bg opacity-40" />
+   702→              <div
+   703→                aria-hidden
+   704→                className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-electric/30 blur-3xl"
+   705→              />
+   706→              <div className="relative">
+   707→                <p className="text-xs uppercase tracking-[0.18em] text-electric-soft">
+   708→                  Coverage
+   709→                </p>
+   710→                <p className="mt-2 font-display text-xl font-semibold">
+   711→                  Clients across 14 countries
+   712→                </p>
+   713→                <p className="mt-1 text-xs text-muted-foreground">
+   714→                  Remote-first · in-person on request
+   715→                </p>
+   716→              </div>
+   717→            </div>
+   718→          </div>
+   719→        </Reveal>
+   720→      </div>
+   721→    </SectionShell>
+   722→  );
+   723→}
+   724→
+   725→/* ------------------------------ subcomponents ------------------------------ */
+   726→
+   727→function Field({
+   728→  label,
+   729→  htmlFor,
+   730→  children,
+   731→  optional,
+   732→  invalid,
+   733→}: {
+   734→  label: string;
+   735→  htmlFor?: string;
+   736→  children: React.ReactNode;
+   737→  optional?: boolean;
+   738→  invalid?: boolean;
+   739→}) {
+   740→  return (
+   741→    <div className="space-y-1.5">
+   742→      <Label htmlFor={htmlFor} className="text-xs text-muted-foreground">
+   743→        {label}
+   744→        {optional && (
+   745→          <span className="ml-1 text-[10px] uppercase tracking-wider opacity-60">
+   746→            optional
+   747→          </span>
+   748→        )}
+   749→        {invalid && (
+   750→          <span className="ml-1 text-[10px] uppercase tracking-wider text-destructive">
+   751→            invalid
+   752→          </span>
+   753→        )}
+   754→      </Label>
+   755→      {children}
+   756→    </div>
+   757→  );
+   758→}
+   759→
+   760→/* local alias kept for clarity — CalendarDays imported from lucide-react */
+   761→
+   762→export default Contact;
+   763→

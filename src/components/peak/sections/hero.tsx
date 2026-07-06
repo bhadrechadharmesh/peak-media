@@ -24,7 +24,7 @@ const HEADLINE = [
 
 const STATS = [
   { value: "480+", label: "campaigns launched" },
-  { value: "$2.1B", label: "revenue influenced" },
+  { value: "₹4,100Cr", label: "revenue influenced" },
   { value: "97%", label: "client retention" },
   { value: "14", label: "industries served" },
 ];
@@ -210,7 +210,7 @@ export function Hero() {
           >
             Peak Media is a full-funnel digital marketing agency — branding,
             SEO, paid media, social, web design &amp; content — built to scale
-            ambitious brands.
+            India's most ambitious brands.
           </motion.p>
 
           {/* CTAs */}

@@ -40,11 +40,11 @@ interface CaseStudy {
 const CASES: CaseStudy[] = [
   {
     id: "northwind",
-    client: "Northwind",
+    client: "Mira",
     industry: "DTC Skincare",
     category: "E-commerce",
     headline: "+312% ROAS in 90 days",
-    monogram: "N",
+    monogram: "M",
     gradient: "from-[#0a84ff]/45 via-[#2b6bff]/25 to-[#38bdf8]/35",
     metrics: [
       {
@@ -56,23 +56,23 @@ const CASES: CaseStudy[] = [
       },
       {
         label: "Revenue / mo",
-        before: { value: 180, prefix: "$", suffix: "k" },
-        after: { value: 740, prefix: "$", suffix: "k" },
-        delta: "+311%",
+        before: { value: 1.4, prefix: "₹", suffix: "Cr", decimals: 1 },
+        after: { value: 6.2, prefix: "₹", suffix: "Cr", decimals: 1 },
+        delta: "+343%",
         positive: true,
       },
       {
         label: "CAC",
-        before: { value: 54, prefix: "$" },
-        after: { value: 19, prefix: "$" },
-        delta: "\u221265%",
+        before: { value: 4200, prefix: "₹" },
+        after: { value: 1500, prefix: "₹" },
+        delta: "\u221264%",
         positive: true,
       },
     ],
   },
   {
     id: "vertex",
-    client: "Vertex",
+    client: "Vridhi",
     industry: "B2B SaaS",
     category: "Lead Gen",
     headline: "3.4x pipeline in one quarter",
@@ -88,15 +88,15 @@ const CASES: CaseStudy[] = [
       },
       {
         label: "Pipeline",
-        before: { value: 1.2, prefix: "$", suffix: "M", decimals: 1 },
-        after: { value: 4.1, prefix: "$", suffix: "M", decimals: 1 },
-        delta: "+242%",
+        before: { value: 10, prefix: "₹", suffix: "Cr" },
+        after: { value: 34, prefix: "₹", suffix: "Cr" },
+        delta: "+240%",
         positive: true,
       },
       {
         label: "CPL",
-        before: { value: 128, prefix: "$" },
-        after: { value: 41, prefix: "$" },
+        before: { value: 9800, prefix: "₹" },
+        after: { value: 3100, prefix: "₹" },
         delta: "\u221268%",
         positive: true,
       },
@@ -104,18 +104,18 @@ const CASES: CaseStudy[] = [
   },
   {
     id: "helix",
-    client: "Helix",
+    client: "Karo",
     industry: "Mobile App",
     category: "App Install",
     headline: "62% lower CPI",
-    monogram: "H",
+    monogram: "K",
     gradient: "from-[#34d399]/40 via-[#0a84ff]/25 to-[#38bdf8]/35",
     metrics: [
       {
         label: "CPI",
-        before: { value: 4.1, prefix: "$", decimals: 2 },
-        after: { value: 1.55, prefix: "$", decimals: 2 },
-        delta: "\u221262%",
+        before: { value: 320, prefix: "₹" },
+        after: { value: 125, prefix: "₹" },
+        delta: "\u221261%",
         positive: true,
       },
       {
@@ -315,7 +315,7 @@ export function CaseStudies() {
       <SectionHeading
         eyebrow="Case studies"
         title="Outcomes that compound, quarter after quarter"
-        description="Three brands. Three breakthroughs. Toggle before/after on each card to watch the deltas animate in."
+        description="Three Indian brands. Three breakthroughs. Toggle before/after on each card to watch the deltas animate in."
       />
 
       <motion.div

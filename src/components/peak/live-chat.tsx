@@ -23,13 +23,13 @@ type Msg = {
   ts: number;
 };
 
-const QUICK_REPLIES = ["Pricing", "Services", "Book a call"];
+const QUICK_REPLIES = ["Pricing", "Services", "Book a call", "Festive campaigns"];
 
 const CANNED_FALLBACK =
   "Great question — let me pull the right info for you. Could you share a bit more about your goal (signups, pipeline, brand awareness)? Or drop your email and a senior strategist will reach out within an hour.";
 
 const WELCOME =
-  "Hey there 👋 I'm Peak — your growth concierge. Ask me about pricing, our services, or book a call with a strategist. What are you looking to grow?";
+  "Hey there 👋 I'm Peak — your growth concierge at Peak Media. Ask me about pricing (in ₹), services, festive campaigns, or book a call with a strategist. What are you looking to grow?";
 
 export function LiveChat() {
   const [open, setOpen] = React.useState(false);
@@ -163,7 +163,7 @@ export function LiveChat() {
                       <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-70" />
                       <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
                     </span>
-                    Typically replies instantly
+                    Typically replies instantly · IST
                   </p>
                 </div>
               </div>

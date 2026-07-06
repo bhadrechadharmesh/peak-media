@@ -216,3 +216,101 @@ Work Log:
 
 Stage Summary:
 - Browser-verified: page renders cleanly, golden-path interactions work end-to-end (chat → form → case studies → navigation). Site is interactive and runnable.
+
+---
+Task ID: 6a
+Agent: frontend-styling-expert
+Task: India-localize hero, marquee, kpis, services, timeline, dashboard.
+
+Work Log:
+- Read worklog design system + inspected all 6 target section files to locate exact localized strings (currency $ amounts, USD KPI targets, US client names, generic Western copy) before editing.
+- hero.tsx: STATS revenue stat "$2.1B" → "₹4,100Cr" (kept 480+ campaigns / 97% retention / 14 industries). Subhead "built to scale ambitious brands" → "built to scale India's most ambitious brands". Headline, floating glass chips (4.2B impressions, +312% avg ROAS), eyebrow, and all motion/parallax logic untouched.
+- marquee.tsx: replaced all 12 client names with Indian-premium brand names (ROW_A: URJA, Moksha, Vridhi, Akshar, Tejas, Sagar; ROW_B: Indra, Varuna, Prakash, Karya, Aadri, Nirvana) — preserved each row's icon pairing and the dual-row counter-scrolling marquee structure. Trusted-by label → "Trusted by India's category-defining brands" (both aria-label and visible text).
+- kpis.tsx: 2nd KPI swapped from $487M to ₹4,100Cr — prefix "$" → "₹", target 487 → 4100, suffix "M" → "Cr", trend "+24% YoY" → "+22% YoY". Verified useCountUp uses Math.round(value).toLocaleString() so 4100 renders as "4,100" → final "₹4,100Cr". Kept impressions (2.1B+), ROAS (312%), retention (97%) KPIs and all count-up / motion / divider logic intact.
+- services.tsx: kept all 6 service names + icons + teasers; added a 4th India-specific capability bullet to each card — Branding "Positioning for Indian consumers", SEO "Vernacular & regional SEO", Social "Festive & IPL-season campaigns", Paid Ads "Performance for D2C & quick-commerce", Web Design "Bharat-first, mobile-first UX", Content "Multilingual content engine (Hindi, Tamil, Telugu, +more)". Hover reveal, gradient sheen, accent line, and stagger entrance all preserved.
+- timeline.tsx: kept 4 stages (Strategy / Creative / Launch / Scale) + all structure. Strategy +5th deliverable "Bharat vs India segmentation"; Creative +5th deliverable "Festive & cultural calendar"; Launch "Daily optimization" → "Daily optimization (IST)"; Scale +5th deliverable "Regional & vernacular expansion". Pinned horizontal-scroll logic, scroll-driven x motion value, connecting-line progress fill, and mobile swipe fallback untouched.
+- dashboard.tsx: 3 campaign tab names updated — "Northwind DTC" → "Mira DTC", "Vertex SaaS" → "Vridhi SaaS", "Helix App Install" → "Karo App Install" (kept internal ids northwind/vertex/helix so React state + tab value mapping is unchanged). totalBudget $2.4M/$1.8M/$3.2M → ₹20Cr/₹15Cr/₹27Cr. Stat tile CPA values $19/$41 → ₹1,500/₹3,100; CPI value $1.55 → ₹125. All chart data arrays (12-week conversions, sparkline series), recharts gradients, donut budget slices, Switch/Tabs state, and AnimatePresence crossfade logic left intact per spec.
+- Verified: npx tsc --noEmit — zero errors in any of the 6 edited files (only pre-existing orchestrator-owned magnetic-button.tsx + examples/ + skills/ sandboxes remain, untouched). npx eslint on the 6 files — zero warnings/errors.
+
+Stage Summary:
+- Files edited:
+  • /home/z/my-project/src/components/peak/sections/hero.tsx
+  • /home/z/my-project/src/components/peak/sections/marquee.tsx
+  • /home/z/my-project/src/components/peak/sections/kpis.tsx
+  • /home/z/my-project/src/components/peak/sections/services.tsx
+  • /home/z/my-project/src/components/peak/sections/timeline.tsx
+  • /home/z/my-project/src/components/peak/sections/dashboard.tsx
+- Key content changes: all USD $ amounts converted to INR ₹ with Indian numbering (Cr where natural, full rupee figures for CPA/CPI); 12 client names Indianized; revenue stat ₹4,100Cr; subtle "India's most ambitious brands" subhead; 6 service cards each gained an India-specific capability bullet; timeline stages gained Bharat/vernacular/festive/IST deliverables; dashboard campaign tabs + budget totals + cost-per-action tiles all in ₹. No export names, props, section ids, motion logic, chart data arrays, or layout classes touched.
+
+---
+Task ID: 6c
+Agent: frontend-styling-expert
+Task: India-localize contact, faq, newsletter, footer, live-chat.
+
+Work Log:
+- Read worklog design system + all five target files (contact.tsx, faq.tsx, newsletter.tsx, footer.tsx, live-chat.tsx) to map exact strings and code structure (form POST to /api/contact, /api/newsletter, /api/chat endpoints, motion variants, accordion, AnimatePresence step transitions) before editing.
+- contact.tsx: swapped BUDGETS array to INR tiers (<₹50k / ₹50k–₹1.5L / ₹1.5L–₹5L / ₹5L+); replaced hello@peakmedia.agency -> hello@peakmedia.in (mailto + error toast); changed phone tel:+18005551234 / "+1 (800) 555-1234" -> tel:+918045678900 / "+91 80 4567 8900"; HQ line -> "HQ · Mumbai · Bengaluru · Delhi"; "Avg reply 4h" -> "Avg reply 4h (IST)"; "What happens next" step titles now mention IST ("Strategy call within 24h (IST)" / "Proposal in ~5 business days (IST)"); success-screen + toast mention IST; goals placeholder CAC $240 -> ₹20,000; decorative map-ish "Coverage" panel converted to "Visit us" / "One BKC, Bandra Kurla Complex" / "Mumbai 400051 · Bengaluru · Delhi". Preserved 3-step form, validation, Calendar/Popover, AnimatePresence, POST to /api/contact, and all motion logic untouched.
+- faq.tsx: rewrote all 8 FAQ answers in place (kept the 8 question topics + tags + accordion structure + Plus rotate animation). Contracts = flexible monthly retainers, no long lock-ins; Industries = D2C & beauty, fintech, edtech, EV & mobility, BFSI, wellness, F&B, quick-commerce, real estate, healthcare; Reporting = live dashboards, no vanity metrics, INR; Team = senior strategist from Mumbai/Bengaluru office, no juniors; Onboarding = kickoff within 24h (IST), proposal in ~5 business days; Guarantees = performance-linked fees; Pricing = flexible scaling + proper GST invoicing (GSTIN on invoice) + quarterly saves 15%; Security = NDA + MOU + ISO-aligned data security.
+- newsletter.tsx: subtext "Channel playbooks, teardowns of winning campaigns" -> "Festive playbooks, teardowns of winning Indian campaigns"; success line "Tuesday at 7am ET" -> "Tuesday at 9am IST"; footer line "Join 12,000+ operators" -> "Join 12,000+ Indian founders & marketers". Kept headline, POST to /api/newsletter, email validation, AnimatePresence success state, MagneticButton subscribe.
+- footer.tsx: replaced all 4 occurrences of hello@peakmedia.agency -> hello@peakmedia.in (CTA strip mailto + text, contact mini-card mailto + text); contact card location "Brooklyn, NY" -> "Mumbai · Bengaluru · Delhi" and "Mon–Fri · 9–6 ET" -> "Mon–Fri · 9–6 IST"; copyright "Crafted for ambitious brands." -> "Made in India 🇮🇳." (flag emoji kept as legit India marker per spec); added a new small muted "GSTIN: 27ABCDE1234F1Z5" line below the bottom bar. Preserved CTA strip, social link column (X/LinkedIn/Instagram/YouTube/Dribbble kept as-is), BackToTop button, top hairline + grid-bg + glow, link columns, and overall structure.
+- live-chat.tsx: WELCOME message now "Hey there 👋 I'm Peak — your growth concierge at Peak Media. Ask me about pricing (in ₹), services, festive campaigns, or book a call with a strategist. What are you looking to grow?"; header status "Typically replies instantly" -> "Typically replies instantly · IST"; added 4th quick-reply chip "Festive campaigns" alongside Pricing/Services/Book a call (flex-wrap layout handles the wrap cleanly). Preserved POST to /api/chat, typing indicator, CANNED_FALLBACK, AnimatePresence open/close, pulse-ring, autoscroll, Escape-to-close, and notification badge.
+- Verified: npx tsc --noEmit shows zero errors in any of the five edited files (only pre-existing orchestrator-owned magnetic-button.tsx + examples/ + skills/ errors remain, untouched). npx eslint on the five files: 0 issues. Grep confirmed no leftover "peakmedia.agency", "Brooklyn", "New York", "+1 (", "555-1234", or stray "$<digit>" strings in any of the five files.
+
+Stage Summary:
+- Files edited:
+  • /home/z/my-project/src/components/peak/sections/contact.tsx
+  • /home/z/my-project/src/components/peak/sections/faq.tsx
+  • /home/z/my-project/src/components/peak/sections/newsletter.tsx
+  • /home/z/my-project/src/components/peak/sections/footer.tsx
+  • /home/z/my-project/src/components/peak/live-chat.tsx
+- Key content changes: all emails -> @peakmedia.in; phone -> +91 80 4567 8900; HQ -> Mumbai · Bengaluru · Delhi + address line "One BKC, Bandra Kurla Complex, Mumbai 400051"; budgets converted to INR (₹50k / ₹1.5L / ₹5L tiers using lakh notation); IST suffix added to response-time mentions across contact + newsletter + live-chat; 8 FAQs rewritten with India-relevant industries, GST/GSTIN invoicing, NDA+MOU, Mumbai/Bengaluru team; newsletter "12,000+ Indian founders & marketers" + festive playbooks; footer "Made in India 🇮🇳." + GSTIN: 27ABCDE1234F1Z5 line; live-chat welcome mentions ₹ pricing + festive campaigns, header shows "· IST", 4th "Festive campaigns" quick-reply chip added. All form/motion/POST logic, component exports, props, and section ids preserved.
+
+---
+Task ID: 6b
+Agent: frontend-styling-expert
+Task: India-localize case-studies, portfolio, testimonials, pricing, why-choose.
+
+Work Log:
+- Read worklog + all 5 target section files to map exact strings, currency wiring (prefix/suffix/decimals on MetricValueData), count-up targets, pricing formatPrice math, and testimonial initials fallback.
+- case-studies.tsx: Renamed clients Northwind→Mira, Vertex→Vridhi, Helix→Karo (monograms N→M, H→K; V stays). Converted all $ metrics to ₹: Mira (ROAS 1.8x→7.4x, Revenue ₹1.4Cr→₹6.2Cr via value+decimals+prefix+suffix, CAC ₹4,200→₹1,500), Vridhi (MQLs 210→720, Pipeline ₹10Cr→₹34Cr, CPL ₹9,800→₹3,100), Karo (CPI ₹320→₹125, D7 18%→31%, Installs 22k→88k). Updated deltas to spec (+312/+343/−64, +243/+240/−68, −61/+72/+300). Section intro copy "Three brands." → "Three Indian brands." count-up targets, decimals, prefix/suffix wiring preserved — integers use Math.round().toLocaleString(), decimals use toFixed(1).
+- portfolio.tsx: Renamed all 8 projects (titles + clients + monograms): Aether Finance/Capital→Artha Capital/Wealth (Æ→Ar), Lumen Skincare/Beauty Co.→Mira Beauty/Co. (Lu→Mi), Voltaic EV/Motors→Urja EV/Motors (V→U), Northwind Coffee/Roasters→Sangam Coffee/Roasters (N→Sa), Helix Health/Care→Ayu Health/Care (Hx→Ay), Sterling Apparel/Atelier→Tantu Apparel/Atelier (S→Ta), Quartz Studio/Architects→Vastu Studio/Architects (Q→Va), Pulse Fitness/Clubs→Ojas Fitness/Clubs (P→Oj). Indianized all 8 blurbs (Mumbai fintech, vernacular quiz, Reels+festival launch, vernacular UGC, DPDP-safe + Tier-1/Tier-2 cities, festive weekend sell-through, Bengaluru clients, vernacular reels). No $ amounts existed in cards/dialog — only %, counts, time metrics, all kept.
+- testimonials.tsx: Replaced all 6 testimonials with Indian names/roles/companies + India-context quotes (~2 sentences each): Ananya Iyer (VP Marketing, Glo Beauty — festive ROAS), Rohan Malhotra (Head of Growth, FinEdge — CPL/pipeline), Priya Nair (CMO, Karo — CPI/vernacular/UPI), Karthik Reddy (Founder & CEO, Urja EV — IPL launch/Bharat), Meera Joshi (Brand Director, Tantu — D2C/quick-commerce), Aditya Banerjee (Performance Lead, Ayu Health — performance-linked fees). Set initials to match names (AI/RM/PN/KR/MJ/AB) — avatar initials are a hardcoded field (not derived), so fallback logic unchanged. Aggregate rating chip "across 120+ reviews" → "across 120+ Indian founders & marketers". Accent gradients preserved.
+- pricing.tsx: Starter monthly 4900→49000, Growth 9900→99000 (Scale stays null/Custom). Rewrote formatPrice: removed /100*100 rounding (which broke the spec's ₹41,650/₹84,150 targets) → now `Math.round(monthly * 0.85)`; switched toLocaleString locale en-US→en-IN. PriceDisplay prefix `$`→`₹`. Verified math: 49000×0.85=41650, 99000×0.85=84150 (both exact, match spec). Reassurance line: "live dashboard, and no" → "live dashboard, GST invoice, and no". No $ in feature lists. CTA labels, save-15% badge, Switch toggle logic, highlight/Most-popular all unchanged.
+- why-choose.tsx: All 6 feature card titles/icons/tilt-glow structure preserved. Indianized "Creative velocity" body (added "festive-ready") and "Always-on optimization" body ("Daily reviews" → "Daily IST reviews"). "Performance-linked fees" body already contained "We win when you win" — kept. Rotating stat panel: "$2.4B+" Revenue influenced → "₹1,200Cr+" (other 3 stats — 312% ROAS, 50+ variations, <24h SLA — kept as generic). Section heading, sticky panel, progress dots, aurora backdrop all untouched.
+- Verified: npx tsc --noEmit → 0 errors in all 5 edited files (only pre-existing orchestrator magnetic-button.tsx + examples/skills sandbox errors remain, untouched). npx eslint on all 5 files → clean (no output). Confirmed no residual $ currency, no Western client names, no HIPAA/TikTok/dollar/cent references. Pricing INR math re-verified via node one-liner (49,000/41,650/99,000/84,150). ₹ symbol renders via UTF-8 in source — Next.js handles fine.
+
+Stage Summary:
+- Files edited:
+  • /home/z/my-project/src/components/peak/sections/case-studies.tsx
+  • /home/z/my-project/src/components/peak/sections/portfolio.tsx
+  • /home/z/my-project/src/components/peak/sections/testimonials.tsx
+  • /home/z/my-project/src/components/peak/sections/pricing.tsx
+  • /home/z/my-project/src/components/peak/sections/why-choose.tsx
+- Key content changes: All client/brand names Indianized (Mira, Vridhi, Karo, Artha, Urja, Sangam, Ayu, Tantu, Vastu, Ojas, Glo Beauty, FinEdge). All currency converted $→₹ with Indian numbering (Cr suffix for crores, en-IN locale, ₹41,650/₹84,150 quarterly math exact). 6 Indian founder/marketer testimonials with festive/IPL/vernacular/Bharat/quick-commerce/UPI context. Pricing ₹49k/₹99k/Custom + GST invoice reassurance. why-choose feature bodies lightly Indianized (festive-ready, IST) + ₹1,200Cr+ revenue-influenced stat. No code structure, exports, props, section ids, animation, count-up, tilt, or layout logic changed.
+
+---
+Task ID: 6d + 7
+Agent: orchestrator
+Task: India LLM concierge system prompt, India SEO metadata + JSON-LD, final browser verification.
+
+Work Log:
+- src/app/api/chat/route.ts: rewrote SYSTEM_PROMPT — Peak Media Mumbai-based concierge for ambitious Indian brands; INR pricing tiers (₹49,000 / ₹99,000 / Custom + GST invoice); kickoff 24h IST, proposal ~5 business days; ₹4,100Cr+ revenue influenced; specializations (D2C, fintech, edtech, EV, BFSI, wellness, F&B, quick-commerce); festive-season (Diwali/IPL/regional) + vernacular/multilingual campaigns; rule "always quote in INR, never USD"; updated fallback replies to peakmedia.in + IST.
+- src/app/layout.tsx metadata: title "Peak Media — Premium Digital Marketing Agency in India"; Mumbai-based description; India/Mumbai keywords; openGraph locale en_IN; url peakmedia.in.
+- src/app/page.tsx JSON-LD: added Mumbai postal address (One BKC, BKC, 400051, IN), telephone +91 80 4567 8900, email hello@peakmedia.in, areaServed India, knowsLanguage [en,hi,ta,te,kn,bn,mr], added "Performance Marketing" service type.
+- Fixed inconsistency: why-choose.tsx rotating stat "₹1,200Cr+" → "₹4,100Cr+" to match KPIs band.
+- Subagents 6a/6b/6c localized all 16 section components (hero, marquee, kpis, services, timeline, dashboard, case-studies, portfolio, testimonials, pricing, why-choose, contact, faq, newsletter, footer, live-chat).
+
+Stage Summary:
+- Lint clean (0 issues). Dev server 200s, no runtime errors.
+- Agent-browser verified at 1440x900:
+  • Page title = "Peak Media — Premium Digital Marketing Agency in India". ✓
+  • Pricing: ₹49,000/mo Starter, ₹99,000/mo Growth. ✓
+  • KPIs: ₹4,100Cr revenue influenced. ✓
+  • Case studies: "Three Indian brands" — Mira (DTC skincare, ₹1.4Cr/mo, ₹4,200 CAC), Vridhi (B2B SaaS), Karo (App install, ₹320 CPI). ✓
+  • Dashboard tabs: "Mira DTC | Vridhi SaaS | Karo App Install". ✓
+  • Contact: +91 80 4567 8900, hello@peakmedia.in, Mumbai · Bengaluru · Delhi, IST. ✓
+  • Footer: "Made in India 🇮🇳" + "GSTIN: 27ABCDE1234F1Z5". ✓
+  • Live chat: LLM replied in INR ("Starter at ₹49,000/month, Growth at ₹99,000/month... All plans include GST invoices") + "Festive campaigns" quick-reply chip + "· IST" status. ✓
+  • Budget segments in form: <₹50k / ₹50k–₹1.5L / ₹1.5L–₹5L / ₹5L+. ✓
+  • Zero leftover USD ($), peakmedia.agency, Brooklyn/NY, or +1 references (grep confirmed clean).
+- Site is fully India-localized and browser-verified interactive.

@@ -39,6 +39,7 @@ const STAGES: Stage[] = [
     deliverables: [
       "Market & competitor audit",
       "ICP & positioning",
+      "Bharat vs India segmentation",
       "Growth roadmap",
       "KPI framework",
     ],
@@ -52,6 +53,7 @@ const STAGES: Stage[] = [
     deliverables: [
       "Brand identity system",
       "Ad creative concepts",
+      "Festive & cultural calendar",
       "Content pillars",
       "Landing page UX",
     ],
@@ -66,7 +68,7 @@ const STAGES: Stage[] = [
       "Cross-channel launch",
       "Conversion tracking",
       "A/B testing",
-      "Daily optimization",
+      "Daily optimization (IST)",
     ],
     icon: Rocket,
     accent: "from-electric-2 to-electric",
@@ -78,6 +80,7 @@ const STAGES: Stage[] = [
     deliverables: [
       "Budget scaling",
       "New-market expansion",
+      "Regional & vernacular expansion",
       "Marketing automation",
       "Quarterly strategy",
     ],

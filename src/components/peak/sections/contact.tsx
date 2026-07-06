@@ -61,7 +61,7 @@ const SERVICES = [
   "Content",
 ] as const;
 
-const BUDGETS = ["<$5k", "$5k–$15k", "$15k–$50k", "$50k+"] as const;
+const BUDGETS = ["<₹50k", "₹50k–₹1.5L", "₹1.5L–₹5L", "₹5L+"] as const;
 
 const TIME_SLOTS = ["Morning", "Afternoon", "Evening"] as const;
 
@@ -148,11 +148,11 @@ export function Contact() {
       if (!res.ok) throw new Error("bad");
       setDone(true);
       toast.success("Submission received", {
-        description: "We'll reach out within 1 business day.",
+        description: "We'll reach out within 1 business day (IST).",
       });
     } catch {
       toast.error("Something went wrong", {
-        description: "Please try again or email hello@peakmedia.agency.",
+        description: "Please try again or email hello@peakmedia.in.",
       });
     } finally {
       setSubmitting(false);
@@ -240,8 +240,8 @@ export function Contact() {
                   </h3>
                   <p className="mt-3 max-w-sm text-balance text-sm text-muted-foreground sm:text-base">
                     We&apos;ll reach out within{" "}
-                    <span className="text-foreground">1 business day</span> to
-                    schedule your strategy call.
+                    <span className="text-foreground">1 business day (IST)</span>{" "}
+                    to schedule your strategy call.
                   </p>
                   <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
                     <MagneticButton
@@ -447,7 +447,7 @@ export function Contact() {
                               id="cf-goals"
                               value={form.goals}
                               onChange={(e) => set("goals", e.target.value)}
-                              placeholder="e.g. Double qualified pipeline in 6 months while keeping CAC under $240."
+                              placeholder="e.g. Double qualified pipeline in 6 months while keeping CAC under ₹20,000."
                               className="min-h-24 resize-none"
                             />
                           </Field>
@@ -603,7 +603,7 @@ export function Contact() {
                 {[
                   {
                     n: "1",
-                    t: "Strategy call within 24h",
+                    t: "Strategy call within 24h (IST)",
                     d: "A senior strategist reviews your goals and audits current performance.",
                   },
                   {
@@ -613,7 +613,7 @@ export function Contact() {
                   },
                   {
                     n: "3",
-                    t: "Proposal in 5 days",
+                    t: "Proposal in ~5 business days (IST)",
                     d: "Clear scope, milestones, KPIs, and pricing — no vague retainers.",
                   },
                 ].map((item, i) => (
@@ -652,10 +652,10 @@ export function Contact() {
                     <Mail className="h-4 w-4" />
                   </span>
                   <a
-                    href="mailto:hello@peakmedia.agency"
+                    href="mailto:hello@peakmedia.in"
                     className="text-foreground transition-colors hover:text-electric"
                   >
-                    hello@peakmedia.agency
+                    hello@peakmedia.in
                   </a>
                 </li>
                 <li className="flex items-center gap-3">
@@ -663,10 +663,10 @@ export function Contact() {
                     <Phone className="h-4 w-4" />
                   </span>
                   <a
-                    href="tel:+18005551234"
+                    href="tel:+918045678900"
                     className="text-foreground transition-colors hover:text-electric"
                   >
-                    +1 (800) 555-1234
+                    +91 80 4567 8900
                   </a>
                 </li>
                 <li className="flex items-center gap-3">
@@ -674,7 +674,7 @@ export function Contact() {
                     <MapPin className="h-4 w-4" />
                   </span>
                   <span className="text-muted-foreground">
-                    HQ · Brooklyn, NY
+                    HQ · Mumbai · Bengaluru · Delhi
                   </span>
                 </li>
               </ul>
@@ -688,7 +688,7 @@ export function Contact() {
                   Available now
                 </span>
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-muted-foreground">
-                  <Clock className="h-3.5 w-3.5" /> Avg reply 4h
+                  <Clock className="h-3.5 w-3.5" /> Avg reply 4h (IST)
                 </span>
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-muted-foreground">
                   <MessageSquare className="h-3.5 w-3.5" /> Mon–Fri
@@ -705,13 +705,13 @@ export function Contact() {
               />
               <div className="relative">
                 <p className="text-xs uppercase tracking-[0.18em] text-electric-soft">
-                  Coverage
+                  Visit us
                 </p>
                 <p className="mt-2 font-display text-xl font-semibold">
-                  Clients across 14 countries
+                  One BKC, Bandra Kurla Complex
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Remote-first · in-person on request
+                  Mumbai 400051 · Bengaluru · Delhi
                 </p>
               </div>
             </div>

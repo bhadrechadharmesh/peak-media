@@ -24,39 +24,42 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://peakmedia.agency"),
+  metadataBase: new URL("https://peakmedia.in"),
   title: {
-    default: "Peak Media — Premium Digital Marketing Agency",
+    default: "Peak Media — Premium Digital Marketing Agency in India",
     template: "%s · Peak Media",
   },
   description:
-    "Peak Media is a results-obsessed digital marketing agency engineering brand growth through SEO, paid media, social, web design and content. Strategy → Creative → Launch → Scale.",
+    "Peak Media is a Mumbai-based premium digital marketing agency engineering growth for ambitious Indian brands — branding, SEO, paid media, social, web design & content. Festive-ready, vernacular, performance-linked.",
   keywords: [
-    "digital marketing agency",
-    "branding agency",
-    "SEO agency",
-    "paid advertising",
-    "social media marketing",
-    "web design",
-    "content creation",
+    "digital marketing agency India",
+    "digital marketing agency Mumbai",
+    "performance marketing agency India",
+    "branding agency Mumbai",
+    "SEO agency India",
+    "paid advertising agency",
+    "social media marketing agency India",
+    "D2C marketing agency India",
+    "web design agency India",
+    "content creation agency",
     "Peak Media",
   ],
   authors: [{ name: "Peak Media" }],
   creator: "Peak Media",
   openGraph: {
-    title: "Peak Media — Premium Digital Marketing Agency",
+    title: "Peak Media — Premium Digital Marketing Agency in India",
     description:
-      "We engineer brand growth. Branding, SEO, paid media, social, web design & content — built to scale.",
-    url: "https://peakmedia.agency",
+      "Mumbai's results-obsessed growth agency for Indian D2C, fintech, edtech & more. Branding, SEO, paid media, social, web & content — built to scale.",
+    url: "https://peakmedia.in",
     siteName: "Peak Media",
     type: "website",
-    locale: "en_US",
+    locale: "en_IN",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Peak Media — Premium Digital Marketing Agency",
+    title: "Peak Media — Premium Digital Marketing Agency in India",
     description:
-      "We engineer brand growth. Branding, SEO, paid media, social, web design & content.",
+      "Mumbai's results-obsessed growth agency. Branding, SEO, paid media, social, web & content — built to scale Indian brands.",
   },
   robots: { index: true, follow: true },
   icons: {

@@ -26,42 +26,42 @@ type FaqItem = {
 const FAQS: FaqItem[] = [
   {
     q: "What contract length do you require?",
-    a: "We work in 90-day sprints with month-to-month rolling after the first quarter. No 12-month lock-ins. If the work isn't performing, you can exit with 14 days notice and a full handover pack.",
+    a: "We work on flexible monthly retainers — no long lock-ins. After a 30-day onboarding sprint, you continue month-to-month. If the work isn't performing, you can exit with 14 days' notice and a full handover pack.",
     tag: "Contracts",
   },
   {
     q: "Which industries do you serve best?",
-    a: "B2B SaaS, DTC e-commerce, fintech, and marketplaces. We've also run growth for healthtech and climate startups. If your funnel is digital-first and measurable, we can move the needle.",
+    a: "D2C & beauty, fintech, edtech, EV & mobility, BFSI, wellness, F&B, quick-commerce, real estate, and healthcare. If your funnel is digital-first and measurable, we can move the needle.",
     tag: "Industries",
   },
   {
     q: "How transparent is your reporting?",
-    a: "Fully. You get a live dashboard (Looker + our own portal) with spend, pipeline, CAC, and contribution by channel. We never bundle ad spend into fees — you see the actual platform cost.",
+    a: "Fully. You get a live dashboard with spend, pipeline, CAC, and contribution by channel — no vanity metrics, no bundled ad spend. You see the actual platform cost in INR, in real time.",
     tag: "Reporting",
   },
   {
     q: "Who actually works on my account?",
-    a: "A senior strategist (8+ yrs) leads every account, supported by 2–3 specialists (paid, SEO, creative, lifecycle). No juniors learning on your budget. The team is named in your proposal.",
+    a: "A senior strategist (8+ yrs) leads every account from our Mumbai or Bengaluru office, supported by 2–3 specialists (paid, SEO, creative, lifecycle). No juniors learning on your budget. The team is named in your proposal.",
     tag: "Team",
   },
   {
     q: "How fast can we start?",
-    a: "Discovery within 48h of signed proposal. Onboarding week covers audit, tracking setup, and channel kick-off. Most clients see first creative live by day 10, paid campaigns by day 14.",
+    a: "Kickoff within 24h (IST) of a signed proposal. Onboarding week covers audit, tracking setup, and channel launch. Most clients see first creative live by day 10, paid campaigns by day 14. Full proposal in ~5 business days.",
     tag: "Onboarding",
   },
   {
     q: "Do you offer performance guarantees?",
-    a: "We commit to SLAs on delivery (creative volume, campaign launches, response times) and shared KPI targets in months 2+. We don't guarantee revenue — anyone who does is selling fiction.",
+    a: "Performance-linked fees — we win when you win. We commit to SLAs on delivery (creative volume, campaign launches, response times) and shared KPI targets from month 2. We don't guarantee revenue — anyone who does is selling fiction.",
     tag: "Guarantees",
   },
   {
     q: "Is pricing flexible as we scale?",
-    a: "Yes. Retainers are scoped to channel mix and volume tiers. Hit a milestone (e.g. $100k/mo spend) and pricing rebalances — usually in your favor. We revisit pricing every quarter.",
+    a: "Yes. Retainers are scoped to channel mix and volume tiers, with proper GST invoicing (GSTIN on every invoice). Hit a milestone (e.g. ₹5L/mo spend) and pricing rebalances — usually in your favor. Quarterly billing saves 15%.",
     tag: "Pricing",
   },
   {
     q: "How do you handle confidentiality?",
-    a: "Mutual NDA before discovery. We're SOC 2-aligned, use isolated workspaces per client, and never reference clients publicly without written consent. Your data is yours, exportable anytime.",
+    a: "Mutual NDA and MOU before discovery. We use isolated workspaces per client, ISO-aligned data security, and never reference clients publicly without written consent. Your data is yours, exportable anytime.",
     tag: "Security",
   },
 ];

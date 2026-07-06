@@ -95,9 +95,9 @@ export function Newsletter() {
                 <span className="text-gradient">weekly growth tactics</span>
               </h2>
               <p className="mx-auto mt-3 max-w-xl text-balance text-sm text-muted-foreground sm:text-base">
-                One actionable email every Tuesday. Channel playbooks, teardowns
-                of winning campaigns, and benchmarks — no fluff, unsubscribe in
-                one click.
+                One actionable email every Tuesday. Festive playbooks,
+                teardowns of winning Indian campaigns, and benchmarks — no
+                fluff, unsubscribe in one click.
               </p>
 
               <div className="mx-auto mt-7 max-w-md">
@@ -128,7 +128,7 @@ export function Newsletter() {
                         You&apos;re in.
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        First issue lands Tuesday at 7am ET.
+                        First issue lands Tuesday at 9am IST.
                       </p>
                       <button
                         type="button"
@@ -187,7 +187,7 @@ export function Newsletter() {
                 </AnimatePresence>
 
                 <p className="mt-3 text-[11px] text-muted-foreground/80">
-                  Join 12,000+ operators. No spam, ever.
+                  Join 12,000+ Indian founders &amp; marketers. No spam, ever.
                 </p>
               </div>
             </div>

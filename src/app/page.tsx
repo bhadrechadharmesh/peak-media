@@ -23,10 +23,20 @@ const jsonLd = {
   "@type": "ProfessionalService",
   name: "Peak Media",
   description:
-    "Premium digital marketing agency specializing in branding, SEO, social media marketing, paid advertising, web design, and content creation.",
-  url: "https://peakmedia.agency",
-  email: "hello@peakmedia.agency",
-  areaServed: "Worldwide",
+    "Mumbai-based premium digital marketing agency specializing in branding, SEO, social media marketing, paid advertising, web design, and content creation for ambitious Indian brands.",
+  url: "https://peakmedia.in",
+  email: "hello@peakmedia.in",
+  telephone: "+91 80 4567 8900",
+  address: {
+    "@type": "PostalAddress",
+    streetAddress: "One BKC, Bandra Kurla Complex",
+    addressLocality: "Mumbai",
+    addressRegion: "Maharashtra",
+    postalCode: "400051",
+    addressCountry: "IN",
+  },
+  areaServed: "India",
+  knowsLanguage: ["en", "hi", "ta", "te", "kn", "bn", "mr"],
   serviceType: [
     "Branding",
     "SEO",
@@ -34,6 +44,7 @@ const jsonLd = {
     "Paid Advertising",
     "Web Design",
     "Content Creation",
+    "Performance Marketing",
   ],
   aggregateRating: {
     "@type": "AggregateRating",

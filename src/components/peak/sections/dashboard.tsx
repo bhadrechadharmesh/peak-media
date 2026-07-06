@@ -66,8 +66,8 @@ const WEEKS = Array.from({ length: 12 }, (_, i) => `W${i + 1}`);
 const CAMPAIGNS: Campaign[] = [
   {
     id: "northwind",
-    name: "Northwind DTC",
-    totalBudget: "$2.4M",
+    name: "Mira DTC",
+    totalBudget: "₹20Cr",
     conversions: [
       { week: "W1", current: 1850, previous: 1240 },
       { week: "W2", current: 2140, previous: 1380 },
@@ -102,7 +102,7 @@ const CAMPAIGNS: Campaign[] = [
       {
         id: "cpa",
         label: "CPA",
-        value: "$19",
+        value: "₹1,500",
         delta: "\u221265%",
         good: true,
         color: EMERALD,
@@ -121,8 +121,8 @@ const CAMPAIGNS: Campaign[] = [
   },
   {
     id: "vertex",
-    name: "Vertex SaaS",
-    totalBudget: "$1.8M",
+    name: "Vridhi SaaS",
+    totalBudget: "₹15Cr",
     conversions: [
       { week: "W1", current: 125, previous: 82 },
       { week: "W2", current: 168, previous: 96 },
@@ -157,7 +157,7 @@ const CAMPAIGNS: Campaign[] = [
       {
         id: "cpa",
         label: "CPA",
-        value: "$41",
+        value: "₹3,100",
         delta: "\u221268%",
         good: true,
         color: EMERALD,
@@ -176,8 +176,8 @@ const CAMPAIGNS: Campaign[] = [
   },
   {
     id: "helix",
-    name: "Helix App Install",
-    totalBudget: "$3.2M",
+    name: "Karo App Install",
+    totalBudget: "₹27Cr",
     conversions: [
       { week: "W1", current: 8200, previous: 5100 },
       { week: "W2", current: 9400, previous: 5800 },
@@ -212,7 +212,7 @@ const CAMPAIGNS: Campaign[] = [
       {
         id: "cpa",
         label: "CPI",
-        value: "$1.55",
+        value: "₹125",
         delta: "\u221262%",
         good: true,
         color: EMERALD,

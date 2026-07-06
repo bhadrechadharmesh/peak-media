@@ -23,7 +23,7 @@ const PLANS: Plan[] = [
   {
     name: "Starter",
     positioning: "For founders validating a channel for the first time.",
-    monthly: 4900,
+    monthly: 49000,
     cta: "Start with Starter",
     features: [
       "1 paid channel, fully managed",
@@ -38,7 +38,7 @@ const PLANS: Plan[] = [
   {
     name: "Growth",
     positioning: "For brands ready to compound across the full funnel.",
-    monthly: 9900,
+    monthly: 99000,
     cta: "Choose Growth",
     highlight: true,
     features: [
@@ -82,8 +82,8 @@ const checkVariants = {
 
 function formatPrice(monthly: number | null, quarterly: boolean) {
   if (monthly === null) return null;
-  const value = quarterly ? Math.round((monthly * 0.85) / 100) * 100 : monthly;
-  return value.toLocaleString("en-US");
+  const value = quarterly ? Math.round(monthly * 0.85) : monthly;
+  return value.toLocaleString("en-IN");
 }
 
 function PriceDisplay({
@@ -104,7 +104,7 @@ function PriceDisplay({
   return (
     <div className="flex items-end gap-1">
       <span className="font-display text-2xl font-medium text-muted-foreground">
-        $
+        ₹
       </span>
       <AnimatePresence mode="popLayout" initial={false}>
         <motion.span
@@ -317,7 +317,7 @@ export function Pricing() {
       <Reveal delay={0.15} className="mt-12 flex justify-center">
         <div className="flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-5 py-3 text-sm text-muted-foreground">
           <span className="inline-flex size-2 rounded-full bg-electric" />
-          All plans include a dedicated strategist, live dashboard, and no
+          All plans include a dedicated strategist, live dashboard, GST invoice, and no
           long-term lock-in.
         </div>
       </Reveal>

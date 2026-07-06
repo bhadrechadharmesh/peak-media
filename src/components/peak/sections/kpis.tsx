@@ -27,11 +27,11 @@ const KPIS: KpiConfig[] = [
     gradient: true,
   },
   {
-    target: 487,
-    prefix: "$",
-    suffix: "M",
+    target: 4100,
+    prefix: "₹",
+    suffix: "Cr",
     label: "Revenue influenced",
-    trend: "+24% YoY",
+    trend: "+22% YoY",
     gradient: true,
   },
   {

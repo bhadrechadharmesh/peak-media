@@ -117,10 +117,10 @@ export function Footer() {
               <p className="text-xs text-muted-foreground">
                 Or email{" "}
                 <a
-                  href="mailto:hello@peakmedia.agency"
+                  href="mailto:hello@peakmedia.in"
                   className="text-electric underline-offset-4 hover:underline"
                 >
-                  hello@peakmedia.agency
+                  hello@peakmedia.in
                 </a>
               </p>
             </div>
@@ -186,16 +186,16 @@ export function Footer() {
                 Get in touch
               </p>
               <a
-                href="mailto:hello@peakmedia.agency"
+                href="mailto:hello@peakmedia.in"
                 className="mt-3 flex items-center gap-2 text-sm text-foreground transition-colors hover:text-electric"
               >
                 <Mail className="h-4 w-4 text-electric" />
-                hello@peakmedia.agency
+                hello@peakmedia.in
               </a>
               <p className="mt-3 text-xs text-muted-foreground">
-                Brooklyn, NY
+                Mumbai · Bengaluru · Delhi
                 <br />
-                Mon–Fri · 9–6 ET
+                Mon–Fri · 9–6 IST
               </p>
               <div className="mt-4 flex items-center gap-1.5 text-[11px] text-emerald-300">
                 <span className="relative flex h-1.5 w-1.5">
@@ -211,8 +211,7 @@ export function Footer() {
         {/* ------------------- bottom bar ------------------- */}
         <div className="flex flex-col items-center justify-between gap-4 border-t border-white/10 py-6 text-xs text-muted-foreground sm:flex-row">
           <p>
-            © {new Date().getFullYear()} Peak Media. Crafted for ambitious
-            brands.
+            © {new Date().getFullYear()} Peak Media. Made in India 🇮🇳.
           </p>
           <div className="flex items-center gap-5">
             <a href="#" className="transition-colors hover:text-foreground">
@@ -227,6 +226,9 @@ export function Footer() {
             <BackToTop />
           </div>
         </div>
+        <p className="pb-6 text-center text-[10px] tracking-wide text-muted-foreground/60">
+          GSTIN: 27ABCDE1234F1Z5
+        </p>
       </div>
     </footer>
   );

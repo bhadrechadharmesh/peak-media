@@ -23,21 +23,21 @@ interface Client {
 }
 
 const ROW_A: Client[] = [
-  { name: "NORTHWIND", icon: Hexagon },
-  { name: "Lumen", icon: Sun },
-  { name: "Vertex", icon: Triangle },
-  { name: "Quanta", icon: Aperture },
-  { name: "Helix", icon: Spline },
-  { name: "Orbital", icon: Orbit },
+  { name: "URJA", icon: Hexagon },
+  { name: "Moksha", icon: Sun },
+  { name: "Vridhi", icon: Triangle },
+  { name: "Akshar", icon: Aperture },
+  { name: "Tejas", icon: Spline },
+  { name: "Sagar", icon: Orbit },
 ];
 
 const ROW_B: Client[] = [
-  { name: "Monarch", icon: Crown },
-  { name: "Cascade", icon: Waves },
-  { name: "Nimbus", icon: Cloud },
-  { name: "Forge", icon: Flame },
-  { name: "Atlas", icon: Globe },
-  { name: "Vela", icon: Compass },
+  { name: "Indra", icon: Crown },
+  { name: "Varuna", icon: Waves },
+  { name: "Prakash", icon: Cloud },
+  { name: "Karya", icon: Flame },
+  { name: "Aadri", icon: Globe },
+  { name: "Nirvana", icon: Compass },
 ];
 
 function ClientLogo({ client }: { client: Client }) {
@@ -84,12 +84,12 @@ function MarqueeRow({
 export function ClientMarquee() {
   return (
     <section
-      aria-label="Trusted by category-defining brands"
+      aria-label="Trusted by India's category-defining brands"
       className="relative border-y border-white/5 bg-background/40 py-10 backdrop-blur-sm"
     >
       <div className="mx-auto mb-7 w-full max-w-7xl px-5 sm:px-8">
         <p className="text-center text-[11px] uppercase tracking-[0.24em] text-muted-foreground">
-          Trusted by category-defining brands
+          Trusted by India's category-defining brands
         </p>
       </div>
 

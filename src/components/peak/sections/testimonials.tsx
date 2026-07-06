@@ -23,56 +23,56 @@ interface Testimonial {
 const TESTIMONIALS: Testimonial[] = [
   {
     quote:
-      "Within two quarters Peak took us from plateaued to compounding. The creative velocity alone is unlike any agency we've worked with — they ship faster than our internal team can react.",
-    name: "Mara Ellison",
-    role: "VP Growth",
-    company: "Lumen Beauty Co.",
-    initials: "ME",
+      "Peak engineered our festive-season ROAS to 7x while the category was busy discounting. Their creative velocity is unlike any agency we've worked with in India — they ship faster than our internal team can react.",
+    name: "Ananya Iyer",
+    role: "VP Marketing",
+    company: "Glo Beauty",
+    initials: "AI",
     accent: "from-electric to-electric-2",
   },
   {
     quote:
-      "What sold me was the reporting. I open the dashboard before standup and know exactly where we are. No more end-of-month surprises dressed up in a slide deck.",
-    name: "Devon Park",
-    role: "CMO",
-    company: "Aether Capital",
-    initials: "DP",
+      "Our cost-per-lead dropped 43% in ninety days while pipeline 3.4x'd in a single quarter. The team treats our budget like it's their own money — that's the only way I can describe the difference.",
+    name: "Rohan Malhotra",
+    role: "Head of Growth",
+    company: "FinEdge",
+    initials: "RM",
     accent: "from-electric-soft to-electric",
   },
   {
     quote:
-      "Our cost per lead dropped 43% in ninety days. The team treats our budget like it's their own money — that's the only way I can describe the difference.",
-    name: "Priya Anand",
-    role: "Head of Acquisition",
-    company: "Helix Care",
-    initials: "PA",
+      "Our CPI dropped 61% in a single quarter and D7 retention climbed to 31%. Peak gets the Indian app ecosystem — vernacular creatives, UPI-driven funnels, the works.",
+    name: "Priya Nair",
+    role: "CMO",
+    company: "Karo",
+    initials: "PN",
     accent: "from-electric-2 to-electric-soft",
   },
   {
     quote:
-      "The launch films hit 8 million views without a cent of paid distribution. Peak just understands how attention moves now — and they don't waste time chasing last year's playbook.",
-    name: "Theo Lindqvist",
-    role: "Brand Director",
-    company: "Voltaic Motors",
-    initials: "TL",
+      "The launch films hit 8 million views during the IPL window without a rupee of paid distribution. Peak just understands how attention moves in Bharat — they don't chase last year's playbook.",
+    name: "Karthik Reddy",
+    role: "Founder & CEO",
+    company: "Urja EV",
+    initials: "KR",
     accent: "from-electric to-electric-soft",
   },
   {
     quote:
-      "We've been through four agencies in six years. Peak is the first one that feels like an extension of our team rather than a vendor we have to manage.",
-    name: "Noor Vasquez",
-    role: "Founder & CEO",
-    company: "Northwind Roasters",
-    initials: "NV",
+      "We've been through four agencies in six years. Peak is the first one that feels like an extension of our D2C team — they scaled us from Mumbai to quick-commerce nationally without losing the brand.",
+    name: "Meera Joshi",
+    role: "Brand Director",
+    company: "Tantu",
+    initials: "MJ",
     accent: "from-electric-soft to-electric-2",
   },
   {
     quote:
-      "Performance-linked fees forced alignment from day one. When our numbers dip, theirs does too. That contract structure alone was worth the switch.",
-    name: "Marcus Wynn",
-    role: "COO",
-    company: "Sterling Atelier",
-    initials: "MW",
+      "Performance-linked fees forced alignment from day one. When our numbers dip, theirs does too. That contract structure alone was worth the switch for our performance marketing.",
+    name: "Aditya Banerjee",
+    role: "Performance Lead",
+    company: "Ayu Health",
+    initials: "AB",
     accent: "from-electric-2 to-electric",
   },
 ];
@@ -154,7 +154,7 @@ export function Testimonials() {
           </span>
           <span className="h-4 w-px bg-white/15" />
           <span className="text-sm text-muted-foreground">
-            across 120+ reviews
+            across 120+ Indian founders & marketers
           </span>
         </div>
       </Reveal>
