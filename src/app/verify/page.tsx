@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { qrToDataUrl, VERIFY_BASE_URL } from "@/lib/qr";
 import { CursorGlow } from "@/components/peak/cursor-glow";
 import { MagneticButton } from "@/components/peak/ui/magnetic-button";
 
@@ -606,89 +607,123 @@ function ValidView({
 }
 
 function CertificateDocument({ cert }: { cert: Certificate }) {
+  const firstName = cert.internName.split(" ")[0];
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.15, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-      className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/[0.06] to-white/[0.02] p-1"
+      className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-1 shadow-xl shadow-black/20"
     >
-      {/* inner frame */}
-      <div className="relative rounded-[1.35rem] border border-electric/15 bg-background/60 p-6 sm:p-9">
-        {/* corner ornaments */}
-        {[
-          "left-3 top-3",
-          "right-3 top-3 rotate-90",
-          "left-3 bottom-3 -rotate-90",
-          "right-3 bottom-3 rotate-180",
-        ].map((c) => (
-          <span
-            key={c}
-            className={cn(
-              "pointer-events-none absolute h-6 w-6 border-l-2 border-t-2 border-electric/40",
-              c
-            )}
-          />
-        ))}
+      {/* inner page */}
+      <div className="relative rounded-xl bg-white p-8 text-[#1f2430] sm:p-12">
+        {/* subtle electric-blue corner accent (top-right) */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute right-0 top-0 h-44 w-44"
+          style={{
+            background:
+              "linear-gradient(135deg, transparent 50%, rgba(10,132,255,0.10) 50%), repeating-linear-gradient(135deg, rgba(10,132,255,0.06) 0 8px, transparent 8px 16px)",
+            WebkitMaskImage:
+              "linear-gradient(225deg, #000 30%, transparent 75%)",
+            maskImage: "linear-gradient(225deg, #000 30%, transparent 75%)",
+          }}
+        />
 
-        {/* watermark */}
-        <span className="pointer-events-none absolute right-6 top-1/2 -translate-y-1/2 rotate-[-24deg] select-none font-display text-[7rem] font-bold leading-none text-electric/[0.04]">
-          VERIFIED
+        {/* verified chip top-right */}
+        <span className="absolute right-8 top-8 inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[0.6rem] font-semibold uppercase tracking-[0.14em] text-emerald-700 sm:right-12 sm:top-12">
+          <CheckCircle2 className="h-3 w-3" />
+          Verified
         </span>
 
-        {/* header */}
-        <div className="relative flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <span className="grid h-9 w-9 place-items-center rounded-lg bg-gradient-to-br from-electric to-[#2b6bff] text-white">
-              <span className="font-display text-base font-bold">P</span>
-            </span>
-            <span className="font-display text-base font-semibold tracking-tight">
-              Peak<span className="text-electric">Media</span>
-            </span>
-          </div>
-          <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[0.65rem] font-medium uppercase tracking-[0.16em] text-muted-foreground">
-            Certificate of Internship
+        {/* top brand */}
+        <div className="relative z-10 flex items-center gap-3">
+          <span className="grid h-10 w-10 place-items-center rounded-lg bg-gradient-to-br from-electric to-[#2b6bff] font-display text-lg font-bold text-white">
+            P
           </span>
+          <div className="leading-tight">
+            <div className="font-display text-lg font-bold tracking-tight text-[#0b1220]">
+              PeakMedia
+            </div>
+            <div className="text-[0.6rem] font-medium uppercase tracking-[0.18em] text-slate-500">
+              The Growth Studio
+            </div>
+            <div className="text-[0.55rem] text-slate-400">
+              By Peak Media Pvt. Ltd.
+            </div>
+          </div>
         </div>
 
-        <div className="relative mt-7 text-center">
-          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-            This is to certify that
-          </p>
-          <h2 className="mt-2 text-balance text-3xl font-semibold sm:text-4xl">
-            <span className="text-gradient">{cert.internName}</span>
+        {/* meta bar */}
+        <div className="relative z-10 mt-6 flex items-baseline justify-between border-b-[1.5px] border-[#0b1220] pb-3">
+          <div className="text-xs text-slate-500">
+            Date: <strong className="font-semibold text-[#1f2430]">{cert.issueDate}</strong>
+          </div>
+          <div className="font-mono text-xs tracking-wide text-[#1f2430]">
+            RID: <span className="text-slate-500">{cert.id}</span>
+          </div>
+        </div>
+
+        {/* title block */}
+        <div className="relative z-10 mt-9">
+          <h2 className="font-display text-xl font-bold tracking-wide text-[#0b1220] sm:text-2xl">
+            TO WHOM IT MAY CONCERN
           </h2>
-          <p className="mt-3 text-sm text-muted-foreground sm:text-base">
+          <p className="mt-1 text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-electric">
+            Internship Completion Certificate
+          </p>
+        </div>
+
+        {/* body */}
+        <div className="relative z-10 mt-6 space-y-3.5 text-[0.825rem] leading-relaxed text-[#2a3140] sm:text-sm">
+          <p>
+            <span className="mr-2 inline-block h-[2px] w-7 align-middle rounded bg-electric" />
+            This is to certify that{" "}
+            <strong className="font-semibold text-[#0b1220]">{cert.internName}</strong>{" "}
             has successfully completed a{" "}
-            <span className="font-medium text-foreground">{cert.duration}</span>{" "}
-            internship as
+            <strong className="font-semibold text-[#0b1220]">{cert.duration}</strong>{" "}
+            internship at Peak Media, serving as a{" "}
+            <strong className="font-semibold text-[#0b1220]">{cert.role}</strong> in the{" "}
+            <strong className="font-semibold text-[#0b1220]">{cert.department}</strong>{" "}
+            department at our{" "}
+            <strong className="font-semibold text-[#0b1220]">{cert.location}</strong> office.
           </p>
-          <p className="mt-1 text-lg font-medium text-foreground sm:text-xl">
-            {cert.role}
+          <p>
+            The internship was held from{" "}
+            <strong className="font-semibold text-[#0b1220]">{cert.startDate}</strong> to{" "}
+            <strong className="font-semibold text-[#0b1220]">{cert.endDate}</strong>. During this
+            period, {firstName} demonstrated strong analytical ability, creative thinking, and a
+            disciplined work ethic — contributing meaningfully to live client engagements and
+            internal growth initiatives.
           </p>
-          <p className="text-sm text-muted-foreground">
-            in the {cert.department} department · {cert.location} office
+          <p>
+            Throughout the engagement, {firstName} consistently exhibited professionalism,
+            adaptability, and a genuine eagerness to learn. The skills and judgement applied to
+            real-world marketing challenges reflect a readiness to contribute meaningfully to any
+            performance-oriented team. We are pleased to award a grade of{" "}
+            <strong className="font-semibold text-[#0b1220]">{cert.grade}</strong> for this
+            engagement.
           </p>
         </div>
 
         {/* details grid */}
-        <div className="relative mt-7 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <Detail label="Start date" value={cert.startDate} />
-          <Detail label="End date" value={cert.endDate} />
-          <Detail label="Issued on" value={cert.issueDate} />
-          <Detail label="Grade" value={cert.grade} accent />
+        <div className="relative z-10 mt-6 grid grid-cols-1 border-t border-slate-200 sm:grid-cols-2">
+          <DocDetail label="Intern" value={cert.internName} />
+          <DocDetail label="Role" value={cert.role} />
+          <DocDetail label="Duration" value={`${cert.startDate} – ${cert.endDate}`} />
+          <DocDetail label="Grade" value={cert.grade} />
         </div>
 
         {/* skills */}
-        <div className="relative mt-5">
-          <p className="mb-2 text-xs uppercase tracking-[0.16em] text-muted-foreground">
+        <div className="relative z-10 mt-5">
+          <p className="mb-2 text-[0.55rem] font-medium uppercase tracking-[0.16em] text-slate-400">
             Skills demonstrated
           </p>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5">
             {cert.skills.map((s) => (
               <span
                 key={s}
-                className="rounded-full border border-electric/25 bg-electric/10 px-3 py-1 text-xs text-foreground"
+                className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[0.7rem] text-[#1f2430]"
               >
                 {s}
               </span>
@@ -696,141 +731,90 @@ function CertificateDocument({ cert }: { cert: Certificate }) {
           </div>
         </div>
 
-        {/* footer row: mentor signature + QR + seal */}
-        <div className="relative mt-8 flex flex-col items-center justify-between gap-6 border-t border-white/10 pt-6 sm:flex-row">
+        {/* sign-off */}
+        <div className="relative z-10 mt-9 flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-start">
           <div>
-            <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-              Mentor
-            </p>
-            <p className="mt-1 font-display text-lg italic text-foreground">
+            <p className="text-[0.825rem] text-[#2a3140]">With regards,</p>
+            <p className="mt-2 font-display text-xl italic text-[#0b1220]">
               {cert.mentor}
             </p>
-            <p className="mt-0.5 text-xs text-muted-foreground">
+            <p className="mt-1 text-[0.7rem] font-semibold text-[#0b1220]">
+              {cert.mentor}
+            </p>
+            <p className="text-[0.65rem] text-slate-500">
               Senior Strategist, Peak Media
             </p>
           </div>
-
-          <FauxQR value={cert.id + cert.hash} />
-
-          <div className="flex flex-col items-center">
-            <motion.div
-              initial={{ scale: 0, rotate: -30 }}
-              animate={{ scale: 1, rotate: -12 }}
-              transition={{ delay: 0.5, type: "spring", stiffness: 200, damping: 14 }}
-              className="relative grid h-20 w-20 place-items-center rounded-full border-2 border-electric/50 bg-electric/10"
-            >
-              <div className="absolute inset-1.5 rounded-full border border-electric/30" />
-              <div className="text-center">
-                <ShieldCheck className="mx-auto h-5 w-5 text-electric" />
-                <span className="block text-[0.5rem] font-bold uppercase tracking-wider text-electric">
-                  Verified
-                </span>
-              </div>
-            </motion.div>
-            <span className="mt-1.5 font-mono text-[0.6rem] text-muted-foreground">
-              {cert.id}
-            </span>
-          </div>
+          <CertificateQR certId={cert.id} />
         </div>
 
-        {/* hash line */}
-        <div className="relative mt-5 flex items-center justify-between rounded-xl bg-white/[0.03] px-3.5 py-2.5 text-xs">
-          <span className="flex items-center gap-1.5 text-muted-foreground">
-            <Fingerprint className="h-3.5 w-3.5 text-electric" />
-            Registry hash
-          </span>
-          <span className="truncate pl-3 font-mono text-foreground/80">
-            {cert.hash}
-          </span>
+        {/* footer */}
+        <div className="relative z-10 mt-8 border-t-[1.5px] border-[#0b1220] pt-3 text-center">
+          <p className="text-[0.65rem] text-slate-600">
+            hello@peakmedia.in <span className="mx-2 text-slate-300">·</span>
+            peakmedia.in <span className="mx-2 text-slate-300">·</span> +91 80 4567 8900
+          </p>
+          <p className="mt-1 text-[0.6rem] text-slate-500">
+            One BKC, Bandra Kurla Complex, Mumbai 400051 · Bengaluru · Delhi
+          </p>
+          <p className="mt-1.5 font-mono text-[0.55rem] tracking-wide text-slate-400">
+            GSTIN: 27ABCDE1234F1Z5 · Registry hash: {cert.hash}
+          </p>
         </div>
       </div>
     </motion.div>
   );
 }
 
-function Detail({
-  label,
-  value,
-  accent,
-}: {
-  label: string;
-  value: string;
-  accent?: boolean;
-}) {
+function DocDetail({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-white/5 bg-white/[0.03] px-3 py-2.5">
-      <p className="text-[0.65rem] uppercase tracking-[0.14em] text-muted-foreground">
+    <div className="border-b border-slate-200 py-3 pr-4 sm:border-l sm:pl-4 sm:first:border-l-0 sm:first:pl-0">
+      <p className="text-[0.55rem] uppercase tracking-[0.16em] text-slate-400">
         {label}
       </p>
-      <p
-        className={cn(
-          "mt-1 text-sm font-semibold",
-          accent ? "text-electric" : "text-foreground"
-        )}
-      >
-        {value}
-      </p>
+      <p className="mt-1 text-sm font-semibold text-[#0b1220]">{value}</p>
     </div>
   );
 }
 
-/* Faux QR — deterministic pattern derived from the value, with finder squares */
-function generateQrCells(value: string): boolean[][] {
-  const size = 21;
-  let h = 0x811c9dc5;
-  for (let i = 0; i < value.length; i++) {
-    h ^= value.charCodeAt(i);
-    h = Math.imul(h, 0x01000193) >>> 0;
-  }
-  const rng = () => {
-    h ^= h << 13;
-    h ^= h >>> 17;
-    h ^= h << 5;
-    h = h >>> 0;
-    return (h & 0xffffff) / 0xffffff;
-  };
-  const grid: boolean[][] = Array.from({ length: size }, () =>
-    Array.from({ length: size }, () => rng() > 0.5)
+/* Real, scannable QR → peakmedia.in/verify?id=<cert> */
+function CertificateQR({ certId }: { certId: string }) {
+  const verifyUrl = React.useMemo(
+    () => `${VERIFY_BASE_URL}?id=${encodeURIComponent(certId)}`,
+    [certId]
   );
-  const finder = (r0: number, c0: number) => {
-    for (let r = 0; r < 7; r++) {
-      for (let c = 0; c < 7; c++) {
-        const edge = r === 0 || r === 6 || c === 0 || c === 6;
-        const center = r >= 2 && r <= 4 && c >= 2 && c <= 4;
-        grid[r0 + r][c0 + c] = edge || center;
-      }
-    }
-    // quiet ring
-    for (let r = -1; r <= 7; r++) {
-      for (let c = -1; c <= 7; c++) {
-        if (r === -1 || r === 7 || c === -1 || c === 7) {
-          const rr = r0 + r;
-          const cc = c0 + c;
-          if (rr >= 0 && rr < size && cc >= 0 && cc < size) grid[rr][cc] = false;
-        }
-      }
-    }
-  };
-  finder(0, 0);
-  finder(0, size - 7);
-  finder(size - 7, 0);
-  return grid;
-}
+  const [src, setSrc] = React.useState<string>("");
+  React.useEffect(() => {
+    let active = true;
+    qrToDataUrl(verifyUrl, { width: 240 })
+      .then((url) => {
+        if (active) setSrc(url);
+      })
+      .catch(() => {
+        /* leave empty */
+      });
+    return () => {
+      active = false;
+    };
+  }, [verifyUrl]);
 
-function FauxQR({ value }: { value: string }) {
-  const cells = React.useMemo(() => generateQrCells(value), [value]);
   return (
-    <div
-      className="grid h-[84px] w-[84px] gap-0 rounded-lg border border-white/10 bg-white p-1.5"
-      style={{ gridTemplateColumns: "repeat(21, minmax(0, 1fr))" }}
-    >
-      {cells.flat().map((on, i) => (
-        <span
-          key={i}
-          className={cn("block", on ? "bg-ink" : "bg-transparent")}
-          style={{ aspectRatio: "1 / 1" }}
-        />
-      ))}
+    <div className="flex flex-col items-center gap-1.5">
+      <div className="grid h-[84px] w-[84px] place-items-center rounded-lg border border-white/10 bg-white p-1.5 shadow-lg">
+        {src ? (
+          <img
+            src={src}
+            alt="QR code linking to the certificate verification page"
+            className="h-full w-full object-contain"
+          />
+        ) : (
+          <div className="h-full w-full animate-pulse rounded bg-muted" />
+        )}
+      </div>
+      <span className="max-w-[110px] text-center text-[0.6rem] uppercase leading-tight tracking-wide text-muted-foreground">
+        Scan to verify at{" "}
+        <span className="font-medium text-electric">peakmedia.in/verify</span>
+      </span>
     </div>
   );
 }

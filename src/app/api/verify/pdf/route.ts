@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCertificate, type Certificate } from "@/data/certificates";
+import { qrToSvg, verifyUrlFor } from "@/lib/qr";
 import { chromium } from "playwright";
 
 export const runtime = "nodejs";
@@ -10,12 +11,15 @@ const ELECTRIC_2 = "#2b6bff";
 const ELECTRIC_SOFT = "#38bdf8";
 
 /** Build a single-page, print-ready HTML certificate from a Certificate record. */
-function certificateHtml(cert: Certificate): string {
+async function certificateHtml(cert: Certificate): Promise<string> {
   const skills = cert.skills.map((s) => `<span class="skill">${escapeHtml(s)}</span>`).join("");
   const verifiedAt = new Date().toLocaleString("en-IN", {
     dateStyle: "long",
     timeZone: "Asia/Kolkata",
   });
+  // Real scannable QR → peakmedia.in/verify?id=<cert>
+  const verifyUrl = verifyUrlFor(cert.id);
+  const qrSvg = await qrToSvg(verifyUrl, { margin: 1 });
 
   return `<!doctype html>
 <html lang="en">
@@ -23,224 +27,188 @@ function certificateHtml(cert: Certificate): string {
 <meta charset="utf-8" />
 <title>Peak Media — Certificate ${escapeHtml(cert.id)}</title>
 <style>
-  @page { size: 1123px 794px; margin: 0; }
+  @page { size: 794px 1123px; margin: 0; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body {
-    width: 1123px; height: 794px;
-    background: #05070d;
+    width: 794px; height: 1123px;
+    background: #ffffff;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    color: #e7ecf5;
+    color: #1f2430;
     -webkit-font-smoothing: antialiased;
   }
-  .cert {
+  .page {
     position: relative;
-    width: 1123px; height: 794px;
-    overflow: hidden;
+    width: 794px; min-height: 1123px;
+    background: #ffffff;
+    padding: 64px 72px 56px;
+  }
+  /* subtle electric-blue geometric corner accent (top-right) */
+  .corner-accent {
+    position: absolute; top: 0; right: 0; width: 220px; height: 220px;
+    pointer-events: none; z-index: 0;
     background:
-      radial-gradient(ellipse 60% 50% at 50% 0%, rgba(10,132,255,0.18), transparent 60%),
-      radial-gradient(ellipse 50% 40% at 90% 100%, rgba(43,107,255,0.14), transparent 60%),
-      #05070d;
+      linear-gradient(135deg, transparent 50%, rgba(10,132,255,0.10) 50%) ,
+      repeating-linear-gradient(135deg, rgba(10,132,255,0.06) 0 8px, transparent 8px 16px);
+    -webkit-mask-image: linear-gradient(225deg, #000 30%, transparent 75%);
+            mask-image: linear-gradient(225deg, #000 30%, transparent 75%);
   }
-  /* faint grid */
-  .cert::before {
-    content: ""; position: absolute; inset: 0;
-    background-image:
-      linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(255,255,255,0.04) 1px, transparent 1px);
-    background-size: 48px 48px;
-    -webkit-mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, #000 30%, transparent 90%);
-            mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, #000 30%, transparent 90%);
-  }
-  /* outer frame */
-  .frame {
-    position: absolute; inset: 26px;
-    border: 1.5px solid rgba(10,132,255,0.35);
-    border-radius: 18px;
-    background: rgba(255,255,255,0.015);
-    -webkit-backdrop-filter: blur(2px);
-  }
-  .frame::before {
-    content: ""; position: absolute; inset: 8px;
-    border: 1px solid rgba(255,255,255,0.07);
-    border-radius: 12px;
-  }
-  /* corner ornaments */
-  .corner { position: absolute; width: 28px; height: 28px; border: 2px solid ${ELECTRIC}; }
-  .corner.tl { top: 20px; left: 20px; border-right: 0; border-bottom: 0; border-top-left-radius: 10px; }
-  .corner.tr { top: 20px; right: 20px; border-left: 0; border-bottom: 0; border-top-right-radius: 10px; }
-  .corner.bl { bottom: 20px; left: 20px; border-right: 0; border-top: 0; border-bottom-left-radius: 10px; }
-  .corner.br { bottom: 20px; right: 20px; border-left: 0; border-top: 0; border-bottom-right-radius: 10px; }
 
-  .content { position: relative; z-index: 2; padding: 56px 72px; height: 100%; display: flex; flex-direction: column; }
-
-  /* header */
-  .header { display: flex; align-items: center; justify-content: space-between; }
-  .brand { display: flex; align-items: center; gap: 12px; }
+  /* ---- top brand row ---- */
+  .brand-row { display: flex; align-items: center; gap: 12px; position: relative; z-index: 1; }
   .logo {
-    width: 40px; height: 40px; border-radius: 10px;
+    width: 38px; height: 38px; border-radius: 9px;
     background: linear-gradient(135deg, ${ELECTRIC}, ${ELECTRIC_2});
     display: grid; place-items: center;
-    box-shadow: 0 6px 20px rgba(10,132,255,0.4);
-    font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 20px; color: #fff;
+    font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 19px; color: #fff;
   }
-  .brand-name { font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 600; letter-spacing: -0.01em; }
-  .brand-name span { color: ${ELECTRIC}; }
-  .badge {
-    font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
-    padding: 6px 14px; border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 999px; background: rgba(255,255,255,0.04); color: #b9c2d4;
-  }
+  .brand-name { font-family: 'Space Grotesk', sans-serif; font-size: 19px; font-weight: 700; color: #0b1220; letter-spacing: -0.01em; line-height: 1.1; }
+  .brand-tag { font-size: 9.5px; letter-spacing: 0.18em; text-transform: uppercase; color: #6b7280; margin-top: 2px; }
+  .brand-sub { font-size: 9px; color: #9aa1ac; margin-top: 1px; }
 
-  /* title block */
-  .title-block { text-align: center; margin-top: 28px; }
-  .eyebrow { font-size: 11px; letter-spacing: 0.32em; text-transform: uppercase; color: #8b93a7; }
-  .intern-name {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 46px; font-weight: 700; line-height: 1.05;
-    margin: 10px 0 6px;
-    background: linear-gradient(100deg, ${ELECTRIC_SOFT}, ${ELECTRIC} 45%, ${ELECTRIC_2});
-    -webkit-background-clip: text; background-clip: text;
-    -webkit-text-fill-color: transparent; color: transparent;
+  /* ---- header meta bar ---- */
+  .meta-bar {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-top: 26px; padding-bottom: 14px;
+    border-bottom: 1.5px solid #0b1220;
+    position: relative; z-index: 1;
   }
-  .role-line { font-size: 15px; color: #b9c2d4; }
-  .role-line strong { color: #fff; font-weight: 600; }
+  .meta-left { font-size: 11px; color: #6b7280; }
+  .meta-left strong { color: #1f2430; font-weight: 600; }
+  .meta-right { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #1f2430; letter-spacing: 0.04em; }
+  .meta-right span { color: #6b7280; }
 
-  /* details grid */
-  .details {
-    margin-top: 24px;
-    display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
-  }
-  .detail {
-    border: 1px solid rgba(255,255,255,0.08);
-    background: rgba(255,255,255,0.025);
-    border-radius: 10px; padding: 10px 12px;
-  }
-  .detail .label { font-size: 8.5px; letter-spacing: 0.14em; text-transform: uppercase; color: #8b93a7; }
-  .detail .value { font-size: 13px; font-weight: 600; color: #e7ecf5; margin-top: 4px; }
-  .detail.accent .value { color: ${ELECTRIC_SOFT}; }
+  /* ---- title block ---- */
+  .title-block { margin-top: 40px; position: relative; z-index: 1; }
+  .title-main { font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 700; letter-spacing: 0.04em; color: #0b1220; }
+  .title-sub { font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase; color: ${ELECTRIC}; margin-top: 4px; font-weight: 600; }
 
-  /* skills */
-  .skills-wrap { margin-top: 16px; }
-  .skills-label { font-size: 8.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #8b93a7; margin-bottom: 6px; }
+  /* ---- body ---- */
+  .body { margin-top: 28px; font-size: 12.5px; line-height: 1.75; color: #2a3140; position: relative; z-index: 1; }
+  .body p + p { margin-top: 14px; }
+  .body strong { color: #0b1220; font-weight: 600; }
+  .accent-bar { display: inline-block; width: 28px; height: 2px; background: ${ELECTRIC}; vertical-align: middle; margin-right: 10px; border-radius: 2px; }
+
+  /* ---- details grid ---- */
+  .details { margin-top: 26px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 0; border-top: 1px solid #e5e7eb; position: relative; z-index: 1; }
+  .detail { padding: 12px 16px 12px 0; border-bottom: 1px solid #e5e7eb; }
+  .detail:nth-child(2n) { padding-left: 20px; border-left: 1px solid #e5e7eb; }
+  .detail .label { font-size: 8.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #9aa1ac; }
+  .detail .value { font-size: 12.5px; font-weight: 600; color: #0b1220; margin-top: 3px; }
+
+  /* ---- skills ---- */
+  .skills-wrap { margin-top: 22px; position: relative; z-index: 1; }
+  .skills-label { font-size: 8.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #9aa1ac; margin-bottom: 7px; }
   .skills { display: flex; flex-wrap: wrap; gap: 6px; }
-  .skill {
-    font-size: 11px; padding: 4px 11px; border-radius: 999px;
-    border: 1px solid rgba(10,132,255,0.35); background: rgba(10,132,255,0.1);
-    color: #dbe4f5;
-  }
+  .skill { font-size: 10.5px; padding: 4px 11px; border-radius: 999px; border: 1px solid #d7dbe3; background: #f6f8fb; color: #1f2430; }
 
-  /* footer row: mentor + seal */
+  /* ---- sign-off ---- */
+  .signoff { margin-top: 46px; display: flex; justify-content: space-between; align-items: flex-start; position: relative; z-index: 1; }
+  .regards { font-size: 12.5px; color: #2a3140; margin-bottom: 6px; }
+  .mentor-sign { font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-style: italic; color: #0b1220; line-height: 1; margin-bottom: 4px; }
+  .mentor-name { font-size: 11.5px; font-weight: 600; color: #0b1220; }
+  .mentor-title { font-size: 10px; color: #6b7280; margin-top: 1px; }
+
+  .qr-block { display: flex; flex-direction: column; align-items: center; }
+  .qr-frame { width: 84px; height: 84px; padding: 5px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; }
+  .qr-frame svg { width: 100%; height: 100%; display: block; }
+  .qr-caption { margin-top: 6px; font-size: 7.5px; letter-spacing: 0.08em; text-transform: uppercase; color: #6b7280; text-align: center; max-width: 120px; line-height: 1.3; }
+  .qr-caption strong { color: ${ELECTRIC}; font-weight: 600; }
+
+  /* ---- footer ---- */
   .footer {
-    margin-top: auto;
-    display: flex; align-items: flex-end; justify-content: space-between;
-    padding-top: 18px; border-top: 1px solid rgba(255,255,255,0.1);
+    position: absolute; left: 72px; right: 72px; bottom: 44px;
+    padding-top: 16px; border-top: 1.5px solid #0b1220;
+    text-align: center; z-index: 1;
   }
-  .mentor .label { font-size: 8.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #8b93a7; }
-  .mentor .name { font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-style: italic; color: #e7ecf5; margin-top: 2px; }
-  .mentor .title { font-size: 10px; color: #8b93a7; margin-top: 1px; }
+  .footer-contact { font-size: 10px; color: #4b5563; letter-spacing: 0.02em; }
+  .footer-contact span { margin: 0 8px; color: #9aa1ac; }
+  .footer-address { font-size: 9.5px; color: #6b7280; margin-top: 3px; }
+  .footer-gstin { font-size: 8.5px; color: #9aa1ac; margin-top: 6px; letter-spacing: 0.08em; }
 
-  .seal { text-align: center; }
-  .seal-stamp {
-    width: 84px; height: 84px; border-radius: 999px;
-    border: 2px solid rgba(10,132,255,0.6); background: rgba(10,132,255,0.12);
-    display: grid; place-items: center; margin: 0 auto;
-    transform: rotate(-10deg);
-    box-shadow: 0 0 24px rgba(10,132,255,0.3);
+  /* faint verified mark top-right of body */
+  .verified-chip {
+    position: absolute; top: 64px; right: 72px; z-index: 2;
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 9px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;
+    color: #047857; background: #ecfdf5; border: 1px solid #a7f3d0;
+    padding: 5px 10px; border-radius: 999px;
   }
-  .seal-stamp .inner {
-    width: 68px; height: 68px; border-radius: 999px; border: 1px solid rgba(10,132,255,0.4);
-    display: grid; place-items: center; text-align: center;
-  }
-  .seal-stamp svg { width: 18px; height: 18px; color: ${ELECTRIC_SOFT}; }
-  .seal-stamp .txt { font-size: 7px; letter-spacing: 0.12em; color: ${ELECTRIC_SOFT}; margin-top: 2px; font-weight: 700; }
-  .cert-id { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #8b93a7; margin-top: 8px; letter-spacing: 0.05em; }
-
-  /* verify strip */
-  .verify-strip {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-top: 14px; padding: 9px 14px;
-    border-radius: 9px; background: rgba(255,255,255,0.03);
-    font-size: 10px;
-  }
-  .verify-strip .left { display: flex; align-items: center; gap: 7px; color: #8b93a7; }
-  .verify-strip .hash { font-family: 'JetBrains Mono', monospace; color: #b9c2d4; }
-  .verify-strip .right { color: #6ef0a8; display: flex; align-items: center; gap: 6px; }
-  .dot { width: 7px; height: 7px; border-radius: 999px; background: #6ef0a8; box-shadow: 0 0 8px #6ef0a8; }
-
-  /* watermark */
-  .watermark {
-    position: absolute; right: 60px; top: 50%; transform: translateY(-50%) rotate(-22deg);
-    font-family: 'Space Grotesk', sans-serif; font-size: 130px; font-weight: 800;
-    color: rgba(10,132,255,0.045); letter-spacing: 0.04em; z-index: 1; pointer-events: none;
-  }
+  .verified-chip svg { width: 11px; height: 11px; }
 </style>
 </head>
 <body>
-  <div class="cert">
-    <div class="frame"></div>
-    <span class="corner tl"></span><span class="corner tr"></span>
-    <span class="corner bl"></span><span class="corner br"></span>
-    <span class="watermark">VERIFIED</span>
+  <div class="page">
+    <div class="corner-accent"></div>
 
-    <div class="content">
-      <div class="header">
-        <div class="brand">
-          <div class="logo">P</div>
-          <div class="brand-name">Peak<span>Media</span></div>
-        </div>
-        <div class="badge">Certificate of Internship</div>
+    <!-- top brand -->
+    <div class="brand-row">
+      <div class="logo">P</div>
+      <div>
+        <div class="brand-name">PeakMedia</div>
+        <div class="brand-tag">The Growth Studio</div>
+        <div class="brand-sub">By Peak Media Pvt. Ltd.</div>
       </div>
+    </div>
 
-      <div class="title-block">
-        <div class="eyebrow">This is to certify that</div>
-        <h1 class="intern-name">${escapeHtml(cert.internName)}</h1>
-        <div class="role-line">
-          has successfully completed a <strong>${escapeHtml(cert.duration)}</strong> internship as
-          <strong>${escapeHtml(cert.role)}</strong>
-          in the ${escapeHtml(cert.department)} department · ${escapeHtml(cert.location)} office
-        </div>
-      </div>
+    <span class="verified-chip">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+      Verified
+    </span>
 
-      <div class="details">
-        <div class="detail"><div class="label">Start date</div><div class="value">${escapeHtml(cert.startDate)}</div></div>
-        <div class="detail"><div class="label">End date</div><div class="value">${escapeHtml(cert.endDate)}</div></div>
-        <div class="detail"><div class="label">Issued on</div><div class="value">${escapeHtml(cert.issueDate)}</div></div>
-        <div class="detail accent"><div class="label">Grade</div><div class="value">${escapeHtml(cert.grade)}</div></div>
-      </div>
+    <!-- meta bar -->
+    <div class="meta-bar">
+      <div class="meta-left">Date: <strong>${escapeHtml(cert.issueDate)}</strong></div>
+      <div class="meta-right">RID: <span>${escapeHtml(cert.id)}</span></div>
+    </div>
 
-      <div class="skills-wrap">
-        <div class="skills-label">Skills demonstrated</div>
-        <div class="skills">${skills}</div>
-      </div>
+    <!-- title -->
+    <div class="title-block">
+      <div class="title-main">TO WHOM IT MAY CONCERN</div>
+      <div class="title-sub">Internship Completion Certificate</div>
+    </div>
 
-      <div class="verify-strip">
-        <div class="left">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="${ELECTRIC}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6z"/><path d="M9 12l2 2 4-4"/></svg>
-          <span>Registry hash</span>
-          <span class="hash">${escapeHtml(cert.hash)}</span>
-        </div>
-        <div class="right">
-          <span class="dot"></span>
-          Verified · ${escapeHtml(verifiedAt)} IST
-        </div>
-      </div>
+    <!-- body -->
+    <div class="body">
+      <p><span class="accent-bar"></span>This is to certify that <strong>${escapeHtml(cert.internName)}</strong> has successfully completed a <strong>${escapeHtml(cert.duration)}</strong> internship at Peak Media, serving as a <strong>${escapeHtml(cert.role)}</strong> in the <strong>${escapeHtml(cert.department)}</strong> department at our <strong>${escapeHtml(cert.location)}</strong> office.</p>
 
-      <div class="footer">
-        <div class="mentor">
-          <div class="label">Mentor</div>
-          <div class="name">${escapeHtml(cert.mentor)}</div>
-          <div class="title">Senior Strategist, Peak Media</div>
-        </div>
-        <div class="seal">
-          <div class="seal-stamp">
-            <div class="inner">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6z"/><path d="M9 12l2 2 4-4"/></svg>
-              <div class="txt">VERIFIED</div>
-            </div>
-          </div>
-          <div class="cert-id">${escapeHtml(cert.id)}</div>
-        </div>
+      <p>The internship was held from <strong>${escapeHtml(cert.startDate)}</strong> to <strong>${escapeHtml(cert.endDate)}</strong>. During this period, ${escapeHtml(cert.internName.split(" ")[0])} demonstrated strong analytical ability, creative thinking, and a disciplined work ethic — contributing meaningfully to live client engagements and internal growth initiatives.</p>
+
+      <p>Throughout the engagement, ${escapeHtml(cert.internName.split(" ")[0])} consistently exhibited professionalism, adaptability, and a genuine eagerness to learn. The skills and judgement applied to real-world marketing challenges reflect a readiness to contribute meaningfully to any performance-oriented team. We are pleased to award a grade of <strong>${escapeHtml(cert.grade)}</strong> for this engagement.</p>
+    </div>
+
+    <!-- details -->
+    <div class="details">
+      <div class="detail"><div class="label">Intern</div><div class="value">${escapeHtml(cert.internName)}</div></div>
+      <div class="detail"><div class="label">Role</div><div class="value">${escapeHtml(cert.role)}</div></div>
+      <div class="detail"><div class="label">Duration</div><div class="value">${escapeHtml(cert.startDate)} – ${escapeHtml(cert.endDate)}</div></div>
+      <div class="detail"><div class="label">Grade</div><div class="value">${escapeHtml(cert.grade)}</div></div>
+    </div>
+
+    <!-- skills -->
+    <div class="skills-wrap">
+      <div class="skills-label">Skills demonstrated</div>
+      <div class="skills">${skills}</div>
+    </div>
+
+    <!-- sign-off -->
+    <div class="signoff">
+      <div>
+        <div class="regards">With regards,</div>
+        <div class="mentor-sign">${escapeHtml(cert.mentor)}</div>
+        <div class="mentor-name">${escapeHtml(cert.mentor)}</div>
+        <div class="mentor-title">Senior Strategist, Peak Media</div>
       </div>
+      <div class="qr-block">
+        <div class="qr-frame">${qrSvg}</div>
+        <div class="qr-caption">Scan to verify at <strong>peakmedia.in/verify</strong></div>
+      </div>
+    </div>
+
+    <!-- footer -->
+    <div class="footer">
+      <div class="footer-contact">hello@peakmedia.in<span>·</span>peakmedia.in<span>·</span>+91 80 4567 8900</div>
+      <div class="footer-address">One BKC, Bandra Kurla Complex, Mumbai 400051 · Bengaluru · Delhi</div>
+      <div class="footer-gstin">GSTIN: 27ABCDE1234F1Z5 · Registry hash: ${escapeHtml(cert.hash)}</div>
     </div>
   </div>
 </body>
@@ -268,7 +236,7 @@ export async function GET(req: Request) {
     );
   }
 
-  const html = certificateHtml(cert);
+  const html = await certificateHtml(cert);
 
   let pdfBytes: Buffer;
   const browser = await chromium.launch({ args: ["--no-sandbox"] });

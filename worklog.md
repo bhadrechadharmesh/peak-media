@@ -386,3 +386,43 @@ Stage Summary:
 - Verified via curl: valid id → HTTP 200, 250KB application/pdf, valid PDF v1.4, 1 page (842×596pt landscape). Text extraction confirmed ALL fields present: Ananya Sharma, Performance Marketing Intern, Performance dept, Mumbai, dates, A+ grade, Rohan Desai mentor, skills (Meta Ads/Google Ads/GA4/Funnel Optimization), registry hash 9f3a7c2e1b8d4f60a5e2c7b91d04f8a3, PM-INT-2025-0142, VERIFIED seal. Invalid id → 404 JSON {ok:false,error}.
 - Verified via agent-browser: full /verify flow → sample → verify animation → valid view → click Download PDF → network shows GET /api/verify/pdf?id=PM-INT-2025-0142 200 → toast "Certificate PDF downloaded." appears → button resets. Dev log confirms 200 response in ~1s.
 - The PDF is a print-ready, branded, vector certificate with all intern details, ready to share/print.
+
+---
+Task ID: 18 + 19 + 20 + 21
+Agent: orchestrator
+Task: Add a real scannable QR code (→ peakmedia.in/verify) to both the on-screen and PDF certificates.
+
+Work Log:
+- Installed `qrcode` + `@types/qrcode` npm packages.
+- Created src/lib/qr.ts — shared QR helpers (used by BOTH the page and the API route, no duplication):
+  • VERIFY_BASE_URL = "https://peakmedia.in/verify"
+  • verifyUrlFor(certId) → `${VERIFY_BASE_URL}?id=${encodeURIComponent(certId)}`
+  • qrToSvg(text, opts) → SVG string (dark ink #05070d, transparent bg, errorCorrection M) — used by PDF route (Playwright renders inline SVG).
+  • qrToDataUrl(text, opts) → PNG data URL (dark on white, errorCorrection M, width 240) — used by on-screen certificate.
+- src/app/api/verify/pdf/route.ts: made certificateHtml() async; generates a real QR via qrToSvg(verifyUrlFor(cert.id)) and embeds the SVG inline in a new .qr-block (84px white card + box-shadow + caption "Scan to verify at peakmedia.in/verify"), placed in a .footer-right cluster beside the VERIFIED seal. GET handler now `await`s certificateHtml. CSS added for .qr-block/.qr-frame/.qr-caption/.footer-right.
+- src/app/verify/page.tsx: replaced the faux deterministic QR (FauxQR + generateQrCells) with a new CertificateQR component that generates a real PNG data URL via qrToDataUrl on mount (useEffect), renders it as an <img> in an 84px white card with a "Scan to verify at peakmedia.in/verify" caption (electric blue URL). Loading state = pulse skeleton. Removed the now-unused generateQrCells function. Added import of qrToDataUrl + VERIFY_BASE_URL.
+- The QR encodes https://peakmedia.in/verify?id=<cert-id> so scanning it opens the /verify page with that ID pre-loaded for verification.
+
+Stage Summary:
+- Lint clean (0 issues). No browser errors.
+- PDF QR verified: regenerated /tmp/cert-qr.pdf (259KB, 1 page), rendered to PNG with pdftoppm, decoded with pyzbar → "https://peakmedia.in/verify?id=PM-INT-2025-0142" ✓
+- On-screen QR verified: reached valid view, QR renders as 70×70px <img> with a 5154-char PNG data URL; caption "SCAN TO VERIFY AT PEAKMEDIA.IN/VERIFY" present. Cropped screenshot decoded with pyzbar → "https://peakmedia.in/verify?id=PM-INT-2025-0142" ✓
+- Both the downloadable PDF and the on-screen certificate document now carry a real, scannable QR that redirects to peakmedia.in/verify with the certificate ID prefilled.
+
+---
+Task ID: 22 + 23 + 24
+Agent: orchestrator
+Task: Redesign certificate (PDF + on-screen) to light, minimal letter-style matching uploaded reference photo.
+
+Work Log:
+- Analyzed the uploaded reference (WhatsApp Image) via VLM: portrait, white background, minimal/corporate-letter style, sans-serif, left-aligned text, top-left logo+tagline, header bar (date left / RID right), centered "TO WHOM IT MAY CONCERN" + subtitle, body paragraphs with bolded name/dates inline, "With regards" + signature + name/title, footer with contact info, subtle geometric corner accent top-right. No ornate borders/seals/scrollwork.
+- Redesigned src/app/api/verify/pdf/route.ts certificateHtml(): now portrait A4 (794×1123px), white background, dark text (#1f2430 / #0b1220). Structure: top-left PeakMedia logo + "The Growth Studio" tagline + "By Peak Media Pvt. Ltd."; subtle electric-blue diagonal striped corner accent (top-right, masked); green "Verified" chip top-right; meta bar (Date left / RID right) with bold bottom border; title "TO WHOM IT MAY CONCERN" + electric-blue "Internship Completion Certificate" subtitle; 3 body paragraphs with bolded intern name/role/department/dates/grade inline + a small electric accent bar; 2×2 details grid (Intern/Role/Duration/Grade); skills as light grey pills; sign-off "With regards," + italic mentor signature + name + title, QR block on the right with "Scan to verify at peakmedia.in/verify" caption; centered footer with contact (email·web·phone), address, GSTIN + registry hash. Removed: dark frame, corner ornaments, VERIFIED watermark, seal stamp, dark verify strip.
+- Redesigned src/app/verify/page.tsx CertificateDocument component to mirror the same light minimal letter-style: white card with slate border + shadow, electric corner accent, green Verified chip, brand row, meta bar, TO WHOM IT MAY CONCERN title, 3 body paragraphs, 2×2 DocDetail grid, skills pills, sign-off with mentor signature + QR, centered footer. Replaced old ornate dark version entirely. Added new DocDetail component; removed old Detail component.
+- QR kept in both (real, scans to https://peakmedia.in/verify?id=<cert>).
+
+Stage Summary:
+- Lint clean (0 issues). No browser errors.
+- PDF verified: regenerated /tmp/cert-light.pdf — portrait A4 (596×842pt), 63KB (down from 259KB), 1 page. All fields present in text extraction (TO WHOM IT MAY CONCERN, Ananya Sharma, Performance Marketing, Mumbai, Rohan Desai, A+, Meta Ads, hello@peakmedia.in, GSTIN, PM-INT-2025-0142). QR decodes to https://peakmedia.in/verify?id=PM-INT-2025-0142. VLM confirmed: white background, portrait, minimal modern, QR present, clean letter layout.
+- On-screen verified: screenshot + VLM confirmed light/white, minimal letter-style, TO WHOM IT MAY CONCERN title, intern name/role/dates/grade visible. QR element present (70×70px) with caption "SCAN TO VERIFY AT PEAKMEDIA.IN/VERIFY", decodes to https://peakmedia.in/verify?id=PM-INT-2025-0142.
+- Download flow verified: click Download PDF → GET /api/verify/pdf?id=PM-INT-2025-0142 → 200.
+- Both the on-screen certificate and the downloadable PDF now match the uploaded reference: light, minimal, corporate-letter style.
