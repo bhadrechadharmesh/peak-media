@@ -50,6 +50,7 @@ const COLUMNS: Column[] = [
       { label: "Playbooks", href: "#" },
       { label: "Newsletter", href: "#newsletter" },
       { label: "FAQ", href: "#faq" },
+      { label: "Verify Certificate", href: "/verify" },
     ],
   },
 ];

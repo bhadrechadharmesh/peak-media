@@ -314,3 +314,75 @@ Stage Summary:
   • Budget segments in form: <₹50k / ₹50k–₹1.5L / ₹1.5L–₹5L / ₹5L+. ✓
   • Zero leftover USD ($), peakmedia.agency, Brooklyn/NY, or +1 references (grep confirmed clean).
 - Site is fully India-localized and browser-verified interactive.
+
+---
+Task ID: 8 + 9 + 10 + 11
+Agent: orchestrator
+Task: Add /verify route for internship certificate verification with fake cinematic verification screen.
+
+Work Log:
+- Created src/app/api/verify/route.ts: seeded registry of 5 valid Peak Media internship certificates (Indian interns: Ananya Sharma/Performance, Karthik Reddy/Creative, Sneha Iyer/Growth, Aditya Verma/Social, Riya Patel/Design) with rich fields (role, dept, dates, mentor, grade, skills, location, hash). POST normalizes the cert number (uppercase, trim), simulates 600ms lookup latency, returns {ok:true,certificate,verifiedAt} for valid or 404 {ok:false,error} for invalid. Also a GET health endpoint.
+- Created src/app/verify/layout.tsx: server-component metadata (title "Verify Certificate", description).
+- Created src/app/verify/page.tsx: client component with 4-phase state machine (idle → verifying → valid | invalid):
+  • Idle: glass card with shield icon, certificate-number input (mono, uppercase, centered), magnetic Verify button, "Try a sample certificate" helper (loads PM-INT-2025-0142), format hint PM-INT-YYYY-####.
+  • Verifying (fake cinematic screen, ~3.6s): radar with rotating conic-gradient beam + rings + crosshair + center fingerprint + ping; the submitted cert ID shown in mono; 6 sequential verification steps (Parsing → Connecting to registry → Checking digital signature → Validating issuer credentials → Cross-referencing records → Confirming authenticity) each transitioning pending→active(spinner)→done(checkmark+OK); animated progress bar 0→100% with live percentage. The real POST /api/verify fires concurrently; result is revealed once both animation completes and API resolves.
+  • Valid: success banner (emerald, animated check + ping) with "Verified · <date> IST"; a full certificate document visual (Peak branding, ornamental corners, "VERIFIED" watermark, gradient intern name, role/department/location, 4-up detail grid (start/end/issued/grade), skills chips, mentor signature, deterministic FauxQR (21x21 with 3 finder squares generated from cert id+hash), animated "Verified" seal stamp, registry hash line); actions: Verify another / Share / Download PDF (toasts).
+  • Invalid: red error card with X + ping, "Certificate not found", the bad ID echoed, a "Things to check" checklist (format/typos/issuer), Try another number / Contact support buttons.
+  - Reusable FauxQR uses a pure generateQrCells function (FNV-1a + xorshift) kept outside render to satisfy react-hooks immutability rule.
+  - Page chrome: top bar (Peak logo → /, Back to site link), ambient electric background, slim footer (© Made in India 🇮🇳 + GSTIN).
+- Added "Verify Certificate" link to main site footer Resources column (src/components/peak/sections/footer.tsx) → /verify, for discoverability.
+
+Stage Summary:
+- Lint clean (0 issues). Dev log: GET /verify 200, POST /api/verify 200 (valid) + 404 (invalid) — all as designed.
+- Agent-browser verified end-to-end at 1440x900:
+  • /verify loads with title "Verify Certificate · Peak Media", no errors. ✓
+  • Sample button fills PM-INT-2025-0142; clicking Verify plays the fake verification screen (Scanning registry… Parsing/Connecting/Checking steps + progress %). ✓
+  • After ~3.6s → valid certificate document renders: "Certificate Verified", Ananya Sharma, Performance Marketing, Mumbai, Grade A+, registry hash 9f3a7c2e1b8d4f60a5e2c7b91d04f8a3, VERIFIED seal + QR. ✓
+  • Invalid number PM-INT-2025-9999 → "Not Verified / Certificate not found" with Things-to-check guidance. ✓
+  • Footer "Verify Certificate" link → /verify. ✓
+- /verify route is fully functional and on-brand.
+
+---
+Task ID: 12 + 13 + 14
+Agent: orchestrator
+Task: Move all certificates into a separate data file (no database); API fetches directly from it.
+
+Work Log:
+- Created src/data/certificates.ts — the single source of truth for all valid internship certificates. Exports:
+  • `Certificate` interface (typed shape: id, internName, role, department, start/end dates, duration, issueDate, mentor, grade, skills[], status, location, hash).
+  • `CERTIFICATES` record — all 5 existing certificates moved here verbatim (Ananya Sharma, Karthik Reddy, Sneha Iyer, Aditya Verma, Riya Patel).
+  • `normalizeCertificateId(raw)` — trims, uppercases, strips spaces AND hyphens (improved from before, which only stripped spaces) so "pm int 2025 0238" and "PM-INT-2025-0238" both match.
+  • `getCertificate(rawId)` — looks up by normalized id against normalized keys; returns Certificate | null.
+  • `certificateCount()` — total registered count.
+  • Header comment documents exactly how to add a new certificate (copy/paste template + hash generation tip).
+- Refactored src/app/api/verify/route.ts: removed all inline certificate data + the Certificate interface + the local normalize fn. Now imports { getCertificate, certificateCount, type Certificate } from "@/data/certificates". POST calls getCertificate() → 404 if null, else returns the cert. GET returns certificateCount(). Re-exports Certificate type for backward compat.
+- The verify page (src/app/verify/page.tsx) keeps its own local Certificate interface (decoupled from backend) — unchanged, still works.
+- Lint clean (0 issues).
+
+Stage Summary:
+- Certificates now live in ONE editable file: src/data/certificates.ts. No database. The API fetches directly from it via getCertificate().
+- Agent-browser verified: valid cert (PM-INT-2025-0142 → Ananya Sharma, full document) ✓; normalized lookup with spaces+lowercase ("pm int 2025 0238" → Riya Patel) ✓; invalid (PM-INT-2025-0001 → 404) ✓. Dev log shows POST /api/verify 200 (valid) + 404 (invalid).
+- To add a new certificate: edit src/data/certificates.ts, paste a new entry into CERTIFICATES, save. Instantly verifiable.
+
+---
+Task ID: 15 + 16 + 17
+Agent: orchestrator
+Task: Add detailed downloadable PDF certificate feature.
+
+Work Log:
+- Installed `playwright` npm package locally (was only global before) + ran `npx playwright install chromium` to download the browser binary.
+- Created src/app/api/verify/pdf/route.ts (Node runtime, force-dynamic):
+  • GET /api/verify/pdf?id=<cert-number> — looks up the cert via getCertificate() from @/data/certificates; 404 JSON if not found.
+  • On valid: builds a single-page (1123×794px landscape) HTML certificate matching the site's dark/electric-blue brand: radial electric glows, faint grid, double-frame with corner ornaments, "VERIFIED" watermark, Peak branding header, gradient intern name, role/department/location line, 4-up detail grid (start/end/issued/grade), skills chips, registry-hash + verified-at strip with green pulse dot, mentor signature, rotated VERIFIED seal stamp, mono cert id. HTML is HTML-escaped for safety.
+  • Renders to a VECTOR PDF via Playwright chromium page.pdf() (printBackground:true, preferCSSPageSize, zero margins) — text stays selectable/sharp, not raster.
+  • Returns the PDF with Content-Type: application/pdf, Content-Disposition: attachment; filename="Peak-Media-Certificate-<name>-<id>.pdf", no-store cache.
+- Wired the verify page's Download PDF button (src/app/verify/page.tsx ValidView):
+  • Added `downloading` state + handleDownload() async fn: fetches /api/verify/pdf?id=..., converts response to blob, creates an object URL, programmatically clicks an <a download> to trigger the browser save dialog, revokes the URL. Uses sonner toasts: loading "Generating your PDF certificate…", success "Certificate PDF downloaded.", error "Could not generate the PDF. Please try again."
+  • Button shows a Loader2 spinner + "Generating…" while downloading; upgraded variant from ghost → primary so it stands out as the key action.
+  • Kept "Verify another" and "Share" actions alongside.
+
+Stage Summary:
+- Lint clean (0 issues). No browser errors.
+- Verified via curl: valid id → HTTP 200, 250KB application/pdf, valid PDF v1.4, 1 page (842×596pt landscape). Text extraction confirmed ALL fields present: Ananya Sharma, Performance Marketing Intern, Performance dept, Mumbai, dates, A+ grade, Rohan Desai mentor, skills (Meta Ads/Google Ads/GA4/Funnel Optimization), registry hash 9f3a7c2e1b8d4f60a5e2c7b91d04f8a3, PM-INT-2025-0142, VERIFIED seal. Invalid id → 404 JSON {ok:false,error}.
+- Verified via agent-browser: full /verify flow → sample → verify animation → valid view → click Download PDF → network shows GET /api/verify/pdf?id=PM-INT-2025-0142 200 → toast "Certificate PDF downloaded." appears → button resets. Dev log confirms 200 response in ~1s.
+- The PDF is a print-ready, branded, vector certificate with all intern details, ready to share/print.
