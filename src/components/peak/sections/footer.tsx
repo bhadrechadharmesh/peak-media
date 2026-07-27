@@ -38,7 +38,7 @@ const COLUMNS: Column[] = [
     title: "Company",
     links: [
       { label: "About", href: "#" },
-      { label: "Careers", href: "#" },
+      { label: "Careers", href: "https://docs.google.com/forms/d/e/1FAIpQLSfGNTb5hxbEyHO5XiKGzOHLPLdBaLAkLGZJbIBv3Z6kOAQvrw/viewform" },
       { label: "Blog", href: "#" },
       { label: "Contact", href: "#contact" },
     ],
