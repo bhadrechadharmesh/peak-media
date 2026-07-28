@@ -23,195 +23,616 @@ async function certificateHtml(cert: Certificate): Promise<string> {
 
   return `<!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8" />
-<title>Peak Media — Certificate ${escapeHtml(cert.id)}</title>
-<style>
-  @page { size: 794px 1123px; margin: 0; }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body {
-    width: 794px; height: 1123px;
-    background: #ffffff;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    color: #1f2430;
-    -webkit-font-smoothing: antialiased;
-  }
-  .page {
-    position: relative;
-    width: 794px; min-height: 1123px;
-    background: #ffffff;
-    padding: 64px 72px 56px;
-  }
-  /* subtle electric-blue geometric corner accent (top-right) */
-  .corner-accent {
-    position: absolute; top: 0; right: 0; width: 220px; height: 220px;
-    pointer-events: none; z-index: 0;
-    background:
-      linear-gradient(135deg, transparent 50%, rgba(10,132,255,0.10) 50%) ,
-      repeating-linear-gradient(135deg, rgba(10,132,255,0.06) 0 8px, transparent 8px 16px);
-    -webkit-mask-image: linear-gradient(225deg, #000 30%, transparent 75%);
-            mask-image: linear-gradient(225deg, #000 30%, transparent 75%);
-  }
+  <head>
+    <meta charset="utf-8" />
+    <title>Peak Media — Certificate ${escapeHtml(cert.id)}</title>
 
-  /* ---- top brand row ---- */
-  .brand-row { display: flex; align-items: center; gap: 12px; position: relative; z-index: 1; }
-  .logo {
-    width: 38px; height: 38px; border-radius: 9px;
-    background: linear-gradient(135deg, ${ELECTRIC}, ${ELECTRIC_2});
-    display: grid; place-items: center;
-    font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 19px; color: #fff;
-  }
-  .brand-name { font-family: 'Space Grotesk', sans-serif; font-size: 19px; font-weight: 700; color: #0b1220; letter-spacing: -0.01em; line-height: 1.1; }
-  .brand-tag { font-size: 9.5px; letter-spacing: 0.18em; text-transform: uppercase; color: #6b7280; margin-top: 2px; }
-  .brand-sub { font-size: 9px; color: #9aa1ac; margin-top: 1px; }
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700&family=Space+Grotesk:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
 
-  /* ---- header meta bar ---- */
-  .meta-bar {
-    display: flex; justify-content: space-between; align-items: baseline;
-    margin-top: 26px; padding-bottom: 14px;
-    border-bottom: 1.5px solid #0b1220;
-    position: relative; z-index: 1;
-  }
-  .meta-left { font-size: 11px; color: #6b7280; }
-  .meta-left strong { color: #1f2430; font-weight: 600; }
-  .meta-right { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #1f2430; letter-spacing: 0.04em; }
-  .meta-right span { color: #6b7280; }
+    <style>
+      @page {
+        size: A4 portrait;
+        margin: 0;
+      }
 
-  /* ---- title block ---- */
-  .title-block { margin-top: 40px; position: relative; z-index: 1; }
-  .title-main { font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 700; letter-spacing: 0.04em; color: #0b1220; }
-  .title-sub { font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase; color: ${ELECTRIC}; margin-top: 4px; font-weight: 600; }
+      @media print {
+        html,
+        body {
+          width: 210mm;
+          height: 297mm;
+          background: #ffffff;
+        }
+        .page {
+          box-shadow: none !important;
+        }
+      }
 
-  /* ---- body ---- */
-  .body { margin-top: 28px; font-size: 12.5px; line-height: 1.75; color: #2a3140; position: relative; z-index: 1; }
-  .body p + p { margin-top: 14px; }
-  .body strong { color: #0b1220; font-weight: 600; }
-  .accent-bar { display: inline-block; width: 28px; height: 2px; background: ${ELECTRIC}; vertical-align: middle; margin-right: 10px; border-radius: 2px; }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-  /* ---- details grid ---- */
-  .details { margin-top: 26px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 0; border-top: 1px solid #e5e7eb; position: relative; z-index: 1; }
-  .detail { padding: 12px 16px 12px 0; border-bottom: 1px solid #e5e7eb; }
-  .detail:nth-child(2n) { padding-left: 20px; border-left: 1px solid #e5e7eb; }
-  .detail .label { font-size: 8.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #9aa1ac; }
-  .detail .value { font-size: 12.5px; font-weight: 600; color: #0b1220; margin-top: 3px; }
+      html,
+      body {
+        width: 794px;
+        height: 1123px;
+        font-family: Inter, sans-serif;
+        background: #eef2f7;
+        overflow: hidden;
+      }
 
-  /* ---- skills ---- */
-  .skills-wrap { margin-top: 22px; position: relative; z-index: 1; }
-  .skills-label { font-size: 8.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #9aa1ac; margin-bottom: 7px; }
-  .skills { display: flex; flex-wrap: wrap; gap: 6px; }
-  .skill { font-size: 10.5px; padding: 4px 11px; border-radius: 999px; border: 1px solid #d7dbe3; background: #f6f8fb; color: #1f2430; }
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
 
-  /* ---- sign-off ---- */
-  .signoff { margin-top: 46px; display: flex; justify-content: space-between; align-items: flex-start; position: relative; z-index: 1; }
-  .regards { font-size: 12.5px; color: #2a3140; margin-bottom: 6px; }
-  .mentor-sign { font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-style: italic; color: #0b1220; line-height: 1; margin-bottom: 4px; }
-  .mentor-name { font-size: 11.5px; font-weight: 600; color: #0b1220; }
-  .mentor-title { font-size: 10px; color: #6b7280; margin-top: 1px; }
+      .page {
+        width: 794px;
+        height: 1123px;
+        position: relative;
+        background: white;
+        overflow: hidden;
+        padding: 40px 60px 35px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
 
-  .qr-block { display: flex; flex-direction: column; align-items: center; }
-  .qr-frame { width: 84px; height: 84px; padding: 5px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; }
-  .qr-frame svg { width: 100%; height: 100%; display: block; }
-  .qr-caption { margin-top: 6px; font-size: 7.5px; letter-spacing: 0.08em; text-transform: uppercase; color: #6b7280; text-align: center; max-width: 120px; line-height: 1.3; }
-  .qr-caption strong { color: ${ELECTRIC}; font-weight: 600; }
+      .top-accent {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 10px;
+        background: linear-gradient(90deg, #c89b3c, #f5d36a, #c89b3c);
+      }
 
-  /* ---- footer ---- */
-  .footer {
-    position: absolute; left: 72px; right: 72px; bottom: 44px;
-    padding-top: 16px; border-top: 1.5px solid #0b1220;
-    text-align: center; z-index: 1;
-  }
-  .footer-contact { font-size: 10px; color: #4b5563; letter-spacing: 0.02em; }
-  .footer-contact span { margin: 0 8px; color: #9aa1ac; }
-  .footer-address { font-size: 9.5px; color: #6b7280; margin-top: 3px; }
-  .footer-gstin { font-size: 8.5px; color: #9aa1ac; margin-top: 6px; letter-spacing: 0.08em; }
+      .outer-border {
+        position: absolute;
+        left: 18px;
+        right: 18px;
+        top: 18px;
+        bottom: 18px;
+        border: 2px solid #1e3a8a;
+        pointer-events: none;
+      }
 
-  /* faint verified mark top-right of body */
-  .verified-chip {
-    position: absolute; top: 64px; right: 72px; z-index: 2;
-    display: inline-flex; align-items: center; gap: 6px;
-    font-size: 9px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;
-    color: #047857; background: #ecfdf5; border: 1px solid #a7f3d0;
-    padding: 5px 10px; border-radius: 999px;
-  }
-  .verified-chip svg { width: 11px; height: 11px; }
-</style>
-</head>
-<body>
-  <div class="page">
-    <div class="corner-accent"></div>
+      .inner-border {
+        position: absolute;
+        left: 28px;
+        right: 28px;
+        top: 28px;
+        bottom: 28px;
+        border: 1px solid #d8d8d8;
+        pointer-events: none;
+      }
 
-    <!-- top brand -->
-    <div class="brand-row">
-      <div class="logo">P</div>
+      .watermark {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-25deg);
+        opacity: 0.04;
+        pointer-events: none;
+        user-select: none;
+      }
+
+      /* Verified Chip */
+      .verified-chip {
+        position: absolute;
+        top: 45px;
+        right: 50px;
+        background: #ecfdf5;
+        border: 1px solid #bbf7d0;
+        color: #047857;
+        padding: 6px 14px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        z-index: 10;
+      }
+
+      .verified-chip svg {
+        width: 14px;
+        height: 14px;
+      }
+
+      /* Header */
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 10px;
+        padding-bottom: 15px;
+      }
+
+      .logo-box {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .logo {
+        width: 56px;
+        height: 56px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #1e40af, #2563eb);
+        color: white;
+        font-size: 28px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-weight: 700;
+      }
+
+      .company {
+        font-size: 28px;
+        font-family: "Space Grotesk", sans-serif;
+        font-weight: 700;
+        color: #0f172a;
+      }
+
+      .company-sub {
+        margin-top: 2px;
+        font-size: 11px;
+        color: #64748b;
+        letter-spacing: 2px;
+      }
+
+      .meta {
+        text-align: right;
+        margin-right: 120px; /* Space for verified chip */
+      }
+
+      .meta-title {
+        font-size: 11px;
+        color: #64748b;
+        margin-top: 3px;
+      }
+
+      .meta-value {
+        font-size: 13px;
+        font-weight: 600;
+        color: #111827;
+      }
+
+      .divider {
+        width: 100%;
+        height: 2px;
+        background: #1e3a8a;
+      }
+
+      /* Title */
+      .title {
+        text-align: center;
+        margin-top: 10px;
+      }
+
+      .title h1 {
+        font-size: 36px;
+        font-family: "Playfair Display", serif;
+        color: #0f172a;
+        letter-spacing: 4px;
+      }
+
+      .title h2 {
+        margin-top: 6px;
+        color: #c89b3c;
+        letter-spacing: 5px;
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      .gold-line {
+        width: 140px;
+        height: 3px;
+        background: #c89b3c;
+        margin: 12px auto 0;
+        border-radius: 30px;
+      }
+
+      /* Recipient */
+      .recipient-section {
+        text-align: center;
+        margin: 10px 0;
+      }
+
+      .awarded {
+        font-size: 13px;
+        color: #6b7280;
+        letter-spacing: 1px;
+      }
+
+      .name {
+        margin-top: 8px;
+        font-family: "Playfair Display", serif;
+        font-size: 36px;
+        color: #0f172a;
+        letter-spacing: 1px;
+      }
+
+      .role {
+        margin-top: 4px;
+        font-size: 15px;
+        color: #374151;
+        font-weight: 500;
+      }
+
+      /* Body Content */
+      .content {
+        width: 100%;
+        max-width: 630px;
+        margin: 0 auto;
+        text-align: center;
+        font-size: 13px;
+        color: #374151;
+        line-height: 1.6;
+      }
+
+      .content strong {
+        color: #111827;
+      }
+
+      /* Details Grid */
+      .details {
+        width: 100%;
+        max-width: 630px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
+
+      .card {
+        border: 1px solid #e5e7eb;
+        border-left: 4px solid #1e40af;
+        padding: 8px 14px;
+        border-radius: 6px;
+        background: #f8fafc;
+      }
+
+      .card .label {
+        font-size: 10px;
+        letter-spacing: 1.5px;
+        color: #94a3b8;
+        text-transform: uppercase;
+      }
+
+      .card .value {
+        margin-top: 4px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #111827;
+      }
+
+      /* Skills */
+      .skills-section {
+        width: 100%;
+        max-width: 630px;
+        margin: 0 auto;
+      }
+
+      .skills-title {
+        text-align: center;
+        font-size: 11px;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        color: #64748b;
+        margin-bottom: 8px;
+      }
+
+      .skills {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+      }
+
+      .skill {
+        padding: 5px 14px;
+        border: 1px solid #cbd5e1;
+        border-radius: 999px;
+        background: #f8fafc;
+        color: #334155;
+        font-size: 12px;
+        font-weight: 500;
+      }
+
+      /* Signatures & Seal Row */
+      .bottom-container {
+        position: relative;
+        width: 100%;
+        max-width: 630px;
+        margin: 0 auto;
+      }
+
+      .signature-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+      }
+
+      .signature {
+        width: 180px;
+        text-align: center;
+      }
+
+      .signature-name {
+        font-family: "Playfair Display", serif;
+        font-size: 20px;
+        color: #0f172a;
+      }
+
+      .signature-line {
+        width: 150px;
+        height: 1px;
+        background: #1f2937;
+        margin: 6px auto 8px;
+      }
+
+      .signature-role {
+        font-size: 12px;
+        color: #64748b;
+      }
+
+      .verify {
+        width: 140px;
+        text-align: center;
+        padding: 10px;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        background: #fafafa;
+      }
+
+      .qr-frame {
+        width: 85px;
+        height: 85px;
+        margin: auto;
+        padding: 6px;
+        border: 1.5px solid #cbd5e1;
+        border-radius: 8px;
+        background: white;
+      }
+
+      .qr-frame svg {
+        width: 100%;
+        height: 100%;
+      }
+
+      .verify-title {
+        margin-top: 6px;
+        font-size: 11px;
+        font-weight: 600;
+        color: #0f172a;
+      }
+
+      .verify-link {
+        margin-top: 2px;
+        font-size: 10px;
+        color: #2563eb;
+      }
+
+      .verify-id {
+        margin-top: 3px;
+        font-size: 10px;
+        color: #64748b;
+      }
+
+      /* Company Seal */
+      .company-seal {
+        position: absolute;
+        left: -15px;
+        bottom: 50px;
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        border: 3px solid rgba(30, 64, 175, 0.25);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #1e40af;
+        font-size: 9px;
+        font-weight: 700;
+        text-align: center;
+        opacity: 0.5;
+        transform: rotate(-12deg);
+        pointer-events: none;
+      }
+
+      /* Footer */
+      .footer {
+        width: 100%;
+        text-align: center;
+        border-top: 1px solid #cbd5e1;
+        padding-top: 12px;
+      }
+
+      .footer-company {
+        font-weight: 700;
+        font-size: 13px;
+        color: #0f172a;
+      }
+
+      .footer-contact {
+        margin-top: 4px;
+        color: #64748b;
+        font-size: 11px;
+      }
+
+      .footer-copy {
+        margin-top: 4px;
+        color: #94a3b8;
+        font-size: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <div class="top-accent"></div>
+      <div class="outer-border"></div>
+      <div class="inner-border"></div>
+
+      <div class="watermark">
+        <img src="logo.svg" style="width: 380px" />
+      </div>
+
+      <div class="verified-chip">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="3"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M20 6L9 17l-5-5" />
+        </svg>
+        Verified
+      </div>
+
+      <!-- Top Header -->
       <div>
-        <div class="brand-name">PeakMedia</div>
-        <div class="brand-tag">The Growth Studio</div>
-        <div class="brand-sub">By Peak Media Pvt. Ltd.</div>
+        <div class="header">
+          <div class="logo-box">
+            <div class="logo">P</div>
+            <div>
+              <div class="company">Peak Media</div>
+              <div class="company-sub">PERFORMANCE MARKETING COMPANY</div>
+            </div>
+          </div>
+
+          <div class="meta">
+            <div class="meta-title">Certificate ID</div>
+            <div class="meta-value">${escapeHtml(cert.id)}</div>
+            <div class="meta-title">Issue Date</div>
+            <div class="meta-value">${escapeHtml(cert.issueDate)}</div>
+          </div>
+        </div>
+        <div class="divider"></div>
+      </div>
+
+      <!-- Certificate Title -->
+      <div class="title">
+        <h1>CERTIFICATE</h1>
+        <h2>OF INTERNSHIP COMPLETION</h2>
+        <div class="gold-line"></div>
+      </div>
+
+      <!-- Recipient -->
+      <div class="recipient-section">
+        <div class="awarded">THIS CERTIFICATE IS PROUDLY PRESENTED TO</div>
+        <div class="name">${escapeHtml(cert.internName)}</div>
+        <div class="role">${escapeHtml(cert.role)}</div>
+      </div>
+
+      <!-- Paragraph Body -->
+      <div class="content">
+        This certificate is awarded to
+        <strong>${escapeHtml(cert.internName)}</strong> in recognition of the
+        successful completion of the
+        <strong>${escapeHtml(cert.duration)}</strong> Internship Program at
+        <strong>Peak Media Pvt. Ltd.</strong> as a
+        <strong>${escapeHtml(cert.role)}</strong> in the
+        <strong>${escapeHtml(cert.department)}</strong> department from
+        <strong>${escapeHtml(cert.startDate)}</strong> to
+        <strong>${escapeHtml(cert.endDate)}</strong>.
+        <br /><br />
+        Throughout the internship, the candidate demonstrated professionalism,
+        technical expertise, analytical thinking, dedication, and a strong
+        willingness to learn while contributing to real client projects and
+        internal business initiatives.
+      </div>
+
+      <!-- Details Cards Grid -->
+      <div class="details">
+        <div class="card">
+          <div class="label">Intern</div>
+          <div class="value">${escapeHtml(cert.internName)}</div>
+        </div>
+        <div class="card">
+          <div class="label">Role</div>
+          <div class="value">${escapeHtml(cert.role)}</div>
+        </div>
+        <div class="card">
+          <div class="label">Department</div>
+          <div class="value">${escapeHtml(cert.department)}</div>
+        </div>
+        <div class="card">
+          <div class="label">Grade</div>
+          <div class="value">${escapeHtml(cert.grade)}</div>
+        </div>
+        <div class="card">
+          <div class="label">Internship Duration</div>
+          <div class="value">
+            ${escapeHtml(cert.startDate)} — ${escapeHtml(cert.endDate)}
+          </div>
+        </div>
+        <div class="card">
+          <div class="label">Location</div>
+          <div class="value">${escapeHtml(cert.location)}</div>
+        </div>
+      </div>
+
+      <!-- Skills -->
+      <div class="skills-section">
+        <div class="skills-title">Skills Demonstrated</div>
+        <div class="skills">${skills}</div>
+      </div>
+
+      <!-- Signatures and QR Code -->
+      <div class="bottom-container">
+        <div class="company-seal">
+          ★ PEAK MEDIA ★<br />CERTIFIED<br />2026
+        </div>
+
+        <div class="signature-row">
+          <div class="signature">
+            <div class="signature-name">${escapeHtml(cert.mentor)}</div>
+            <div class="signature-line"></div>
+            <div class="signature-role">
+              Senior Strategist<br />Peak Media Pvt. Ltd.
+            </div>
+          </div>
+
+          <div class="verify">
+            <div class="qr-frame">${qrSvg}</div>
+            <div class="verify-title">Verify Certificate</div>
+            <div class="verify-link">peakmedia.in/verify</div>
+            <div class="verify-id">ID : ${escapeHtml(cert.id)}</div>
+          </div>
+
+          <div class="signature">
+            <div class="signature-name">HR Department</div>
+            <div class="signature-line"></div>
+            <div class="signature-role">
+              Human Resources<br />Peak Media Pvt. Ltd.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="footer">
+        <div class="footer-company">Peak Media Pvt. Ltd.</div>
+        <div class="footer-contact">
+          hello@peakmedia.in &nbsp; • &nbsp; www.peakmedia.in &nbsp; • &nbsp;
+          +91 80 4567 8900
+        </div>
+        <div class="footer-contact">Mumbai • Bengaluru • Jaipur</div>
+        <div class="footer-copy">
+          Certificate Hash : ${escapeHtml(cert.hash)}
+        </div>
       </div>
     </div>
-
-    <span class="verified-chip">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-      Verified
-    </span>
-
-    <!-- meta bar -->
-    <div class="meta-bar">
-      <div class="meta-left">Date: <strong>${escapeHtml(cert.issueDate)}</strong></div>
-      <div class="meta-right">RID: <span>${escapeHtml(cert.id)}</span></div>
-    </div>
-
-    <!-- title -->
-    <div class="title-block">
-      <div class="title-main">TO WHOM IT MAY CONCERN</div>
-      <div class="title-sub">Internship Completion Certificate</div>
-    </div>
-
-    <!-- body -->
-    <div class="body">
-      <p><span class="accent-bar"></span>This is to certify that <strong>${escapeHtml(cert.internName)}</strong> has successfully completed a <strong>${escapeHtml(cert.duration)}</strong> internship at Peak Media, serving as a <strong>${escapeHtml(cert.role)}</strong> in the <strong>${escapeHtml(cert.department)}</strong> department at our <strong>${escapeHtml(cert.location)}</strong> office.</p>
-
-      <p>The internship was held from <strong>${escapeHtml(cert.startDate)}</strong> to <strong>${escapeHtml(cert.endDate)}</strong>. During this period, ${escapeHtml(cert.internName.split(" ")[0])} demonstrated strong analytical ability, creative thinking, and a disciplined work ethic — contributing meaningfully to live client engagements and internal growth initiatives.</p>
-
-      <p>Throughout the engagement, ${escapeHtml(cert.internName.split(" ")[0])} consistently exhibited professionalism, adaptability, and a genuine eagerness to learn. The skills and judgement applied to real-world marketing challenges reflect a readiness to contribute meaningfully to any performance-oriented team. We are pleased to award a grade of <strong>${escapeHtml(cert.grade)}</strong> for this engagement.</p>
-    </div>
-
-    <!-- details -->
-    <div class="details">
-      <div class="detail"><div class="label">Intern</div><div class="value">${escapeHtml(cert.internName)}</div></div>
-      <div class="detail"><div class="label">Role</div><div class="value">${escapeHtml(cert.role)}</div></div>
-      <div class="detail"><div class="label">Duration</div><div class="value">${escapeHtml(cert.startDate)} – ${escapeHtml(cert.endDate)}</div></div>
-      <div class="detail"><div class="label">Grade</div><div class="value">${escapeHtml(cert.grade)}</div></div>
-    </div>
-
-    <!-- skills -->
-    <div class="skills-wrap">
-      <div class="skills-label">Skills demonstrated</div>
-      <div class="skills">${skills}</div>
-    </div>
-
-    <!-- sign-off -->
-    <div class="signoff">
-      <div>
-        <div class="regards">With regards,</div>
-        <div class="mentor-sign">${escapeHtml(cert.mentor)}</div>
-        <div class="mentor-name">${escapeHtml(cert.mentor)}</div>
-        <div class="mentor-title">Senior Strategist, Peak Media</div>
-      </div>
-      <div class="qr-block">
-        <div class="qr-frame">${qrSvg}</div>
-        <div class="qr-caption">Scan to verify at <strong>peakmedia.in/verify</strong></div>
-      </div>
-    </div>
-
-    <!-- footer -->
-    <div class="footer">
-      <div class="footer-contact">hello@peakmedia.in<span>·</span>peakmedia.in<span>·</span>+91 80 4567 8900</div>
-      <div class="footer-address">One BKC, Bandra Kurla Complex, Mumbai 400051 · Bengaluru · Delhi</div>
-      <div class="footer-gstin">GSTIN: 27ABCDE1234F1Z5 · Registry hash: ${escapeHtml(cert.hash)}</div>
-    </div>
-  </div>
-</body>
+  </body>
 </html>`;
 }
 
