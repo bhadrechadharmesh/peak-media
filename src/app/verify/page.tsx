@@ -666,9 +666,6 @@ function CertificateDocument({ cert }: { cert: Certificate }) {
 
         {/* title block */}
         <div className="relative z-10 mt-9">
-          <h2 className="font-display text-xl font-bold tracking-wide text-[#0b1220] sm:text-2xl">
-            TO WHOM IT MAY CONCERN
-          </h2>
           <p className="mt-1 text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-electric">
             Internship Completion Certificate
           </p>
@@ -691,76 +688,24 @@ function CertificateDocument({ cert }: { cert: Certificate }) {
           <p>
             The internship was held from{" "}
             <strong className="font-semibold text-[#0b1220]">{cert.startDate}</strong> to{" "}
-            <strong className="font-semibold text-[#0b1220]">{cert.endDate}</strong>. During this
-            period, {firstName} demonstrated strong analytical ability, creative thinking, and a
-            disciplined work ethic — contributing meaningfully to live client engagements and
-            internal growth initiatives.
+            <strong className="font-semibold text-[#0b1220]">{cert.endDate}</strong>. 
           </p>
-          <p>
-            Throughout the engagement, {firstName} consistently exhibited professionalism,
-            adaptability, and a genuine eagerness to learn. The skills and judgement applied to
-            real-world marketing challenges reflect a readiness to contribute meaningfully to any
-            performance-oriented team. We are pleased to award a grade of{" "}
-            <strong className="font-semibold text-[#0b1220]">{cert.grade}</strong> for this
-            engagement.
-          </p>
+
         </div>
 
         {/* details grid */}
-        <div className="relative z-10 mt-6 grid grid-cols-1 border-t border-slate-200 sm:grid-cols-2">
-          <DocDetail label="Intern" value={cert.internName} />
-          <DocDetail label="Role" value={cert.role} />
-          <DocDetail label="Duration" value={`${cert.startDate} – ${cert.endDate}`} />
-          <DocDetail label="Grade" value={cert.grade} />
-        </div>
+
 
         {/* skills */}
-        <div className="relative z-10 mt-5">
-          <p className="mb-2 text-[0.55rem] font-medium uppercase tracking-[0.16em] text-slate-400">
-            Skills demonstrated
-          </p>
-          <div className="flex flex-wrap gap-1.5">
-            {cert.skills.map((s) => (
-              <span
-                key={s}
-                className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[0.7rem] text-[#1f2430]"
-              >
-                {s}
-              </span>
-            ))}
-          </div>
-        </div>
+
 
         {/* sign-off */}
-        <div className="relative z-10 mt-9 flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-start">
-          <div>
-            <p className="text-[0.825rem] text-[#2a3140]">With regards,</p>
-            <p className="mt-2 font-display text-xl italic text-[#0b1220]">
-              {cert.mentor}
-            </p>
-            <p className="mt-1 text-[0.7rem] font-semibold text-[#0b1220]">
-              {cert.mentor}
-            </p>
-            <p className="text-[0.65rem] text-slate-500">
-              Senior Strategist, Peak Media
-            </p>
-          </div>
+        <div className="relative z-10 mt-9 flex flex-col items-center justify-center gap-6 sm:flex-row sm:items-start">
           <CertificateQR certId={cert.id} />
         </div>
 
         {/* footer */}
-        <div className="relative z-10 mt-8 border-t-[1.5px] border-[#0b1220] pt-3 text-center">
-          <p className="text-[0.65rem] text-slate-600">
-            hello@peakmedia.in <span className="mx-2 text-slate-300">·</span>
-            peakmedia.in <span className="mx-2 text-slate-300">·</span> +91 80 4567 8900
-          </p>
-          <p className="mt-1 text-[0.6rem] text-slate-500">
-            One BKC, Bandra Kurla Complex, Mumbai 400051 · Bengaluru · Delhi
-          </p>
-          <p className="mt-1.5 font-mono text-[0.55rem] tracking-wide text-slate-400">
-            GSTIN: 27ABCDE1234F1Z5 · Registry hash: {cert.hash}
-          </p>
-        </div>
+     
       </div>
     </motion.div>
   );
