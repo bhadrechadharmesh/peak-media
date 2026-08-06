@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCertificate, type Certificate } from "@/data/certificates";
 import { qrToSvg, verifyUrlFor } from "@/lib/qr";
-import { chromium } from "playwright";
+import puppeteer from "puppeteer";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -659,13 +659,13 @@ export async function GET(req: Request) {
 
   const html = await certificateHtml(cert);
 
-  let pdfBytes: Buffer;
-  const browser = await chromium.launch({ args: ["--no-sandbox"] });
+  let pdfBytes: Uint8Array;
+  const browser = await puppeteer.launch({
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+  });
   try {
     const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: "networkidle" });
-    // Allow webfonts/colors to settle (graceful; no remote fonts used).
-    await page.waitForTimeout(120);
+    await page.setContent(html, { waitUntil: "domcontentloaded" });
     pdfBytes = await page.pdf({
       printBackground: true,
       preferCSSPageSize: true,
