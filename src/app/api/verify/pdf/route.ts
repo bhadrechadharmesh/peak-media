@@ -1,649 +1,343 @@
 import { NextResponse } from "next/server";
 import { getCertificate, type Certificate } from "@/data/certificates";
-import { qrToSvg, verifyUrlFor } from "@/lib/qr";
-import chromium from "@sparticuz/chromium";
-import puppeteer from "puppeteer-core";
+import { qrToDataUrl, verifyUrlFor } from "@/lib/qr";
+import PDFDocument from "pdfkit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const ELECTRIC = "#0a84ff";
-const ELECTRIC_2 = "#2b6bff";
-const ELECTRIC_SOFT = "#38bdf8";
+/** Build a single-page PDF document using PDFKit. */
+function generateCertificatePDF(cert: Certificate, qrBuffer: Buffer): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    // Standard A4 portrait size in points: 595.28 x 841.89
+    const doc = new PDFDocument({
+      size: "A4",
+      margin: 0,
+      info: {
+        Title: `Peak Media — Certificate ${cert.id}`,
+        Author: "Peak Media Pvt. Ltd.",
+        Subject: `Internship Completion Certificate - ${cert.internName}`,
+      },
+    });
 
-/** Build a single-page, print-ready HTML certificate from a Certificate record. */
-async function certificateHtml(cert: Certificate): Promise<string> {
-  const skills = cert.skills.map((s) => `<span class="skill">${escapeHtml(s)}</span>`).join("");
-  const verifiedAt = new Date().toLocaleString("en-IN", {
-    dateStyle: "long",
-    timeZone: "Asia/Kolkata",
+    const buffers: Buffer[] = [];
+    doc.on("data", (chunk) => buffers.push(chunk));
+    doc.on("end", () => resolve(Buffer.concat(buffers)));
+    doc.on("error", (err) => reject(err));
+
+    const width = 595.28;
+    const height = 841.89;
+
+    // Top gold accent bar
+    doc
+      .rect(0, 0, width, 8)
+      .fillColor("#c89b3c")
+      .fill();
+
+    // Outer navy border
+    doc
+      .rect(14, 14, width - 28, height - 28)
+      .lineWidth(1.5)
+      .strokeColor("#1e3a8a")
+      .stroke();
+
+    // Inner subtle border
+    doc
+      .rect(22, 22, width - 44, height - 44)
+      .lineWidth(0.5)
+      .strokeColor("#d8d8d8")
+      .stroke();
+
+    // Verified badge (top right)
+    doc
+      .roundedRect(width - 125, 35, 80, 22, 11)
+      .fillAndStroke("#ecfdf5", "#bbf7d0");
+    
+    doc
+      .fillColor("#047857")
+      .fontSize(9)
+      .font("Helvetica-Bold")
+      .text("VERIFIED", width - 125, 42, { width: 80, align: "center" });
+
+    // Header Logo & Company Name
+    const marginX = 45;
+    let cursorY = 45;
+
+    // Logo icon box
+    doc
+      .roundedRect(marginX, cursorY, 40, 40, 8)
+      .fillColor("#1e40af")
+      .fill();
+
+    doc
+      .fillColor("#ffffff")
+      .fontSize(22)
+      .font("Helvetica-Bold")
+      .text("P", marginX, cursorY + 8, { width: 40, align: "center" });
+
+    // Company title
+    doc
+      .fillColor("#0f172a")
+      .fontSize(20)
+      .font("Helvetica-Bold")
+      .text("Peak Media", marginX + 50, cursorY + 2);
+
+    doc
+      .fillColor("#64748b")
+      .fontSize(8)
+      .font("Helvetica")
+      .text("PERFORMANCE MARKETING COMPANY", marginX + 50, cursorY + 26);
+
+    // Meta details (Certificate ID & Date) right header
+    doc
+      .fillColor("#64748b")
+      .fontSize(8)
+      .font("Helvetica")
+      .text("Certificate ID", width - 240, cursorY + 4, { width: 100, align: "right" })
+      .text("Issue Date", width - 240, cursorY + 22, { width: 100, align: "right" });
+
+    doc
+      .fillColor("#111827")
+      .fontSize(9)
+      .font("Helvetica-Bold")
+      .text(cert.id, width - 135, cursorY + 4, { width: 100, align: "left" })
+      .text(cert.issueDate, width - 135, cursorY + 22, { width: 100, align: "left" });
+
+    // Divider line
+    cursorY = 100;
+    doc
+      .moveTo(marginX, cursorY)
+      .lineTo(width - marginX, cursorY)
+      .lineWidth(1.5)
+      .strokeColor("#1e3a8a")
+      .stroke();
+
+    // Certificate Main Title
+    cursorY += 25;
+    doc
+      .fillColor("#0f172a")
+      .fontSize(24)
+      .font("Helvetica-Bold")
+      .text("CERTIFICATE", 0, cursorY, { align: "center" });
+
+    cursorY += 28;
+    doc
+      .fillColor("#c89b3c")
+      .fontSize(11)
+      .font("Helvetica-Bold")
+      .text("OF INTERNSHIP COMPLETION", 0, cursorY, { align: "center" });
+
+    cursorY += 20;
+    doc
+      .moveTo(width / 2 - 50, cursorY)
+      .lineTo(width / 2 + 50, cursorY)
+      .lineWidth(2)
+      .strokeColor("#c89b3c")
+      .stroke();
+
+    // Recipient Section
+    cursorY += 25;
+    doc
+      .fillColor("#6b7280")
+      .fontSize(9)
+      .font("Helvetica")
+      .text("THIS CERTIFICATE IS PROUDLY PRESENTED TO", 0, cursorY, { align: "center" });
+
+    cursorY += 16;
+    doc
+      .fillColor("#0f172a")
+      .fontSize(26)
+      .font("Helvetica-Bold")
+      .text(cert.internName, 0, cursorY, { align: "center" });
+
+    cursorY += 32;
+    doc
+      .fillColor("#374151")
+      .fontSize(12)
+      .font("Helvetica-Bold")
+      .text(cert.role, 0, cursorY, { align: "center" });
+
+    // Paragraph Content
+    cursorY += 25;
+    const bodyText = `This certificate is awarded to ${cert.internName} in recognition of the successful completion of the ${cert.duration} Internship Program at Peak Media Pvt. Ltd. as a ${cert.role} in the ${cert.department} department from ${cert.startDate} to ${cert.endDate}.\n\nThroughout the internship, the candidate demonstrated professionalism, technical expertise, analytical thinking, dedication, and a strong willingness to learn while contributing to real client projects and internal business initiatives.`;
+
+    doc
+      .fillColor("#374151")
+      .fontSize(9.5)
+      .font("Helvetica")
+      .text(bodyText, marginX + 20, cursorY, {
+        width: width - (marginX + 20) * 2,
+        align: "center",
+        lineGap: 4,
+      });
+
+    // Details Grid (2 columns, 3 rows)
+    cursorY += 105;
+    const cardWidth = 230;
+    const cardHeight = 34;
+    const gapX = 20;
+    const gapY = 10;
+    const gridLeft = (width - (cardWidth * 2 + gapX)) / 2;
+
+    const details = [
+      { label: "INTERN", value: cert.internName },
+      { label: "ROLE", value: cert.role },
+      { label: "DEPARTMENT", value: cert.department },
+      { label: "GRADE", value: cert.grade },
+      { label: "INTERNSHIP DURATION", value: `${cert.startDate} — ${cert.endDate}` },
+      { label: "LOCATION", value: cert.location },
+    ];
+
+    details.forEach((item, index) => {
+      const col = index % 2;
+      const row = Math.floor(index / 2);
+      const x = gridLeft + col * (cardWidth + gapX);
+      const y = cursorY + row * (cardHeight + gapY);
+
+      doc
+        .roundedRect(x, y, cardWidth, cardHeight, 4)
+        .fillAndStroke("#f8fafc", "#e5e7eb");
+
+      doc
+        .rect(x, y, 3, cardHeight)
+        .fillColor("#1e40af")
+        .fill();
+
+      doc
+        .fillColor("#94a3b8")
+        .fontSize(7)
+        .font("Helvetica-Bold")
+        .text(item.label, x + 10, y + 6);
+
+      doc
+        .fillColor("#111827")
+        .fontSize(9)
+        .font("Helvetica-Bold")
+        .text(item.value, x + 10, y + 18, { width: cardWidth - 15, ellipsis: true });
+    });
+
+    // Skills Section
+    cursorY += 3 * (cardHeight + gapY) + 10;
+    doc
+      .fillColor("#64748b")
+      .fontSize(8)
+      .font("Helvetica-Bold")
+      .text("SKILLS DEMONSTRATED", 0, cursorY, { align: "center" });
+
+    cursorY += 15;
+    const skillsText = cert.skills.join("   •   ");
+    doc
+      .fillColor("#1e40af")
+      .fontSize(9)
+      .font("Helvetica-Bold")
+      .text(skillsText, 0, cursorY, { align: "center" });
+
+    // Bottom Signatures & QR Code Section
+    cursorY = height - 195;
+
+    // Signature 1: Mentor
+    doc
+      .fillColor("#0f172a")
+      .fontSize(14)
+      .font("Helvetica-Bold")
+      .text(cert.mentor, marginX + 10, cursorY, { width: 140, align: "center" });
+
+    doc
+      .moveTo(marginX + 10, cursorY + 20)
+      .lineTo(marginX + 150, cursorY + 20)
+      .lineWidth(1)
+      .strokeColor("#1f2937")
+      .stroke();
+
+    doc
+      .fillColor("#64748b")
+      .fontSize(8)
+      .font("Helvetica")
+      .text("Senior Strategist", marginX + 10, cursorY + 26, { width: 140, align: "center" })
+      .text("Peak Media Pvt. Ltd.", marginX + 10, cursorY + 36, { width: 140, align: "center" });
+
+    // Signature 2: HR Department
+    doc
+      .fillColor("#0f172a")
+      .fontSize(14)
+      .font("Helvetica-Bold")
+      .text("HR Department", width - marginX - 150, cursorY, { width: 140, align: "center" });
+
+    doc
+      .moveTo(width - marginX - 150, cursorY + 20)
+      .lineTo(width - marginX - 10, cursorY + 20)
+      .lineWidth(1)
+      .strokeColor("#1f2937")
+      .stroke();
+
+    doc
+      .fillColor("#64748b")
+      .fontSize(8)
+      .font("Helvetica")
+      .text("Human Resources", width - marginX - 150, cursorY + 26, { width: 140, align: "center" })
+      .text("Peak Media Pvt. Ltd.", width - marginX - 150, cursorY + 36, { width: 140, align: "center" });
+
+    // Center QR Verification Box
+    const qrBoxWidth = 100;
+    const qrBoxX = (width - qrBoxWidth) / 2;
+    const qrBoxY = cursorY - 10;
+
+    doc
+      .roundedRect(qrBoxX, qrBoxY, qrBoxWidth, 110, 6)
+      .fillAndStroke("#fafafa", "#e5e7eb");
+
+    doc.image(qrBuffer, qrBoxX + 17.5, qrBoxY + 8, { width: 65, height: 65 });
+
+    doc
+      .fillColor("#0f172a")
+      .fontSize(7.5)
+      .font("Helvetica-Bold")
+      .text("Verify Certificate", qrBoxX, qrBoxY + 76, { width: qrBoxWidth, align: "center" });
+
+    doc
+      .fillColor("#2563eb")
+      .fontSize(6.5)
+      .font("Helvetica")
+      .text("peakmedia.in/verify", qrBoxX, qrBoxY + 87, { width: qrBoxWidth, align: "center" });
+
+    doc
+      .fillColor("#64748b")
+      .fontSize(6)
+      .font("Helvetica")
+      .text(`ID: ${cert.id}`, qrBoxX, qrBoxY + 97, { width: qrBoxWidth, align: "center" });
+
+    // Footer
+    cursorY = height - 55;
+    doc
+      .moveTo(marginX, cursorY)
+      .lineTo(width - marginX, cursorY)
+      .lineWidth(0.5)
+      .strokeColor("#cbd5e1")
+      .stroke();
+
+    cursorY += 8;
+    doc
+      .fillColor("#0f172a")
+      .fontSize(9)
+      .font("Helvetica-Bold")
+      .text("Peak Media Pvt. Ltd.", 0, cursorY, { align: "center" });
+
+    cursorY += 12;
+    doc
+      .fillColor("#64748b")
+      .fontSize(7.5)
+      .font("Helvetica")
+      .text("hello@peakmedia.in   •   www.peakmedia.in   •   +91 80 4567 8900", 0, cursorY, { align: "center" });
+
+    cursorY += 10;
+    doc
+      .fillColor("#94a3b8")
+      .fontSize(6.5)
+      .font("Helvetica")
+      .text(`Certificate Hash : ${cert.hash}`, 0, cursorY, { align: "center" });
+
+    doc.end();
   });
-  // Real scannable QR → peakmedia.in/verify?id=<cert>
-  const verifyUrl = verifyUrlFor(cert.id);
-  const qrSvg = await qrToSvg(verifyUrl, { margin: 1 });
-
-  return `<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>Peak Media — Certificate ${escapeHtml(cert.id)}</title>
-
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700&family=Space+Grotesk:wght@500;700&display=swap"
-      rel="stylesheet"
-    />
-
-    <style>
-      @page {
-        size: A4 portrait;
-        margin: 0;
-      }
-
-      @media print {
-        html,
-        body {
-          width: 210mm;
-          height: 297mm;
-          background: #ffffff;
-        }
-        .page {
-          box-shadow: none !important;
-        }
-      }
-
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-
-      html,
-      body {
-        width: 794px;
-        height: 1123px;
-        font-family: Inter, sans-serif;
-        background: #eef2f7;
-        overflow: hidden;
-      }
-
-      body {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-      }
-
-      .page {
-        width: 794px;
-        height: 1123px;
-        position: relative;
-        background: white;
-        overflow: hidden;
-        padding: 40px 60px 35px;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-      }
-
-      .top-accent {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 10px;
-        background: linear-gradient(90deg, #c89b3c, #f5d36a, #c89b3c);
-      }
-
-      .outer-border {
-        position: absolute;
-        left: 18px;
-        right: 18px;
-        top: 18px;
-        bottom: 18px;
-        border: 2px solid #1e3a8a;
-        pointer-events: none;
-      }
-
-      .inner-border {
-        position: absolute;
-        left: 28px;
-        right: 28px;
-        top: 28px;
-        bottom: 28px;
-        border: 1px solid #d8d8d8;
-        pointer-events: none;
-      }
-
-      .watermark {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%) rotate(-25deg);
-        opacity: 0.04;
-        pointer-events: none;
-        user-select: none;
-      }
-
-      /* Verified Chip */
-      .verified-chip {
-        position: absolute;
-        top: 45px;
-        right: 50px;
-        background: #ecfdf5;
-        border: 1px solid #bbf7d0;
-        color: #047857;
-        padding: 6px 14px;
-        border-radius: 999px;
-        font-size: 11px;
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        z-index: 10;
-      }
-
-      .verified-chip svg {
-        width: 14px;
-        height: 14px;
-      }
-
-      /* Header */
-      .header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding-top: 10px;
-        padding-bottom: 15px;
-      }
-
-      .logo-box {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-      }
-
-      .logo {
-        width: 56px;
-        height: 56px;
-        border-radius: 12px;
-        background: linear-gradient(135deg, #1e40af, #2563eb);
-        color: white;
-        font-size: 28px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-weight: 700;
-      }
-
-      .company {
-        font-size: 28px;
-        font-family: "Space Grotesk", sans-serif;
-        font-weight: 700;
-        color: #0f172a;
-      }
-
-      .company-sub {
-        margin-top: 2px;
-        font-size: 11px;
-        color: #64748b;
-        letter-spacing: 2px;
-      }
-
-      .meta {
-        text-align: right;
-        margin-right: 120px; /* Space for verified chip */
-      }
-
-      .meta-title {
-        font-size: 11px;
-        color: #64748b;
-        margin-top: 3px;
-      }
-
-      .meta-value {
-        font-size: 13px;
-        font-weight: 600;
-        color: #111827;
-      }
-
-      .divider {
-        width: 100%;
-        height: 2px;
-        background: #1e3a8a;
-      }
-
-      /* Title */
-      .title {
-        text-align: center;
-        margin-top: 10px;
-      }
-
-      .title h1 {
-        font-size: 36px;
-        font-family: "Playfair Display", serif;
-        color: #0f172a;
-        letter-spacing: 4px;
-      }
-
-      .title h2 {
-        margin-top: 6px;
-        color: #c89b3c;
-        letter-spacing: 5px;
-        font-size: 14px;
-        font-weight: 600;
-      }
-
-      .gold-line {
-        width: 140px;
-        height: 3px;
-        background: #c89b3c;
-        margin: 12px auto 0;
-        border-radius: 30px;
-      }
-
-      /* Recipient */
-      .recipient-section {
-        text-align: center;
-        margin: 10px 0;
-      }
-
-      .awarded {
-        font-size: 13px;
-        color: #6b7280;
-        letter-spacing: 1px;
-      }
-
-      .name {
-        margin-top: 8px;
-        font-family: "Playfair Display", serif;
-        font-size: 36px;
-        color: #0f172a;
-        letter-spacing: 1px;
-      }
-
-      .role {
-        margin-top: 4px;
-        font-size: 15px;
-        color: #374151;
-        font-weight: 500;
-      }
-
-      /* Body Content */
-      .content {
-        width: 100%;
-        max-width: 630px;
-        margin: 0 auto;
-        text-align: center;
-        font-size: 13px;
-        color: #374151;
-        line-height: 1.6;
-      }
-
-      .content strong {
-        color: #111827;
-      }
-
-      /* Details Grid */
-      .details {
-        width: 100%;
-        max-width: 630px;
-        margin: 0 auto;
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
-      }
-
-      .card {
-        border: 1px solid #e5e7eb;
-        border-left: 4px solid #1e40af;
-        padding: 8px 14px;
-        border-radius: 6px;
-        background: #f8fafc;
-      }
-
-      .card .label {
-        font-size: 10px;
-        letter-spacing: 1.5px;
-        color: #94a3b8;
-        text-transform: uppercase;
-      }
-
-      .card .value {
-        margin-top: 4px;
-        font-size: 14px;
-        font-weight: 600;
-        color: #111827;
-      }
-
-      /* Skills */
-      .skills-section {
-        width: 100%;
-        max-width: 630px;
-        margin: 0 auto;
-      }
-
-      .skills-title {
-        text-align: center;
-        font-size: 11px;
-        letter-spacing: 3px;
-        text-transform: uppercase;
-        color: #64748b;
-        margin-bottom: 8px;
-      }
-
-      .skills {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 8px;
-      }
-
-      .skill {
-        padding: 5px 14px;
-        border: 1px solid #cbd5e1;
-        border-radius: 999px;
-        background: #f8fafc;
-        color: #334155;
-        font-size: 12px;
-        font-weight: 500;
-      }
-
-      /* Signatures & Seal Row */
-      .bottom-container {
-        position: relative;
-        width: 100%;
-        max-width: 630px;
-        margin: 0 auto;
-      }
-
-      .signature-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
-      }
-
-      .signature {
-        width: 180px;
-        text-align: center;
-      }
-
-      .signature-name {
-        font-family: "Playfair Display", serif;
-        font-size: 20px;
-        color: #0f172a;
-      }
-
-      .signature-line {
-        width: 150px;
-        height: 1px;
-        background: #1f2937;
-        margin: 6px auto 8px;
-      }
-
-      .signature-role {
-        font-size: 12px;
-        color: #64748b;
-      }
-
-      .verify {
-        width: 140px;
-        text-align: center;
-        padding: 10px;
-        border: 1px solid #e5e7eb;
-        border-radius: 10px;
-        background: #fafafa;
-      }
-
-      .qr-frame {
-        width: 85px;
-        height: 85px;
-        margin: auto;
-        padding: 6px;
-        border: 1.5px solid #cbd5e1;
-        border-radius: 8px;
-        background: white;
-      }
-
-      .qr-frame svg {
-        width: 100%;
-        height: 100%;
-      }
-
-      .verify-title {
-        margin-top: 6px;
-        font-size: 11px;
-        font-weight: 600;
-        color: #0f172a;
-      }
-
-      .verify-link {
-        margin-top: 2px;
-        font-size: 10px;
-        color: #2563eb;
-      }
-
-      .verify-id {
-        margin-top: 3px;
-        font-size: 10px;
-        color: #64748b;
-      }
-
-      /* Company Seal */
-      .company-seal {
-        position: absolute;
-        left: -15px;
-        bottom: 50px;
-        width: 80px;
-        height: 80px;
-        border-radius: 50%;
-        border: 3px solid rgba(30, 64, 175, 0.25);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        color: #1e40af;
-        font-size: 9px;
-        font-weight: 700;
-        text-align: center;
-        opacity: 0.5;
-        transform: rotate(-12deg);
-        pointer-events: none;
-      }
-
-      /* Footer */
-      .footer {
-        width: 100%;
-        text-align: center;
-        border-top: 1px solid #cbd5e1;
-        padding-top: 12px;
-      }
-
-      .footer-company {
-        font-weight: 700;
-        font-size: 13px;
-        color: #0f172a;
-      }
-
-      .footer-contact {
-        margin-top: 4px;
-        color: #64748b;
-        font-size: 11px;
-      }
-
-      .footer-copy {
-        margin-top: 4px;
-        color: #94a3b8;
-        font-size: 10px;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="page">
-      <div class="top-accent"></div>
-      <div class="outer-border"></div>
-      <div class="inner-border"></div>
-
-      <div class="watermark">
-        <img src="logo.svg" style="width: 380px" />
-      </div>
-
-      <div class="verified-chip">
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="3"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <path d="M20 6L9 17l-5-5" />
-        </svg>
-        Verified
-      </div>
-
-      <!-- Top Header -->
-      <div>
-        <div class="header">
-          <div class="logo-box">
-            <div class="logo">P</div>
-            <div>
-              <div class="company">Peak Media</div>
-              <div class="company-sub">PERFORMANCE MARKETING COMPANY</div>
-            </div>
-          </div>
-
-          <div class="meta">
-            <div class="meta-title">Certificate ID</div>
-            <div class="meta-value">${escapeHtml(cert.id)}</div>
-            <div class="meta-title">Issue Date</div>
-            <div class="meta-value">${escapeHtml(cert.issueDate)}</div>
-          </div>
-        </div>
-        <div class="divider"></div>
-      </div>
-
-      <!-- Certificate Title -->
-      <div class="title">
-        <h1>CERTIFICATE</h1>
-        <h2>OF INTERNSHIP COMPLETION</h2>
-        <div class="gold-line"></div>
-      </div>
-
-      <!-- Recipient -->
-      <div class="recipient-section">
-        <div class="awarded">THIS CERTIFICATE IS PROUDLY PRESENTED TO</div>
-        <div class="name">${escapeHtml(cert.internName)}</div>
-        <div class="role">${escapeHtml(cert.role)}</div>
-      </div>
-
-      <!-- Paragraph Body -->
-      <div class="content">
-        This certificate is awarded to
-        <strong>${escapeHtml(cert.internName)}</strong> in recognition of the
-        successful completion of the
-        <strong>${escapeHtml(cert.duration)}</strong> Internship Program at
-        <strong>Peak Media Pvt. Ltd.</strong> as a
-        <strong>${escapeHtml(cert.role)}</strong> in the
-        <strong>${escapeHtml(cert.department)}</strong> department from
-        <strong>${escapeHtml(cert.startDate)}</strong> to
-        <strong>${escapeHtml(cert.endDate)}</strong>.
-        <br /><br />
-        Throughout the internship, the candidate demonstrated professionalism,
-        technical expertise, analytical thinking, dedication, and a strong
-        willingness to learn while contributing to real client projects and
-        internal business initiatives.
-      </div>
-
-      <!-- Details Cards Grid -->
-      <div class="details">
-        <div class="card">
-          <div class="label">Intern</div>
-          <div class="value">${escapeHtml(cert.internName)}</div>
-        </div>
-        <div class="card">
-          <div class="label">Role</div>
-          <div class="value">${escapeHtml(cert.role)}</div>
-        </div>
-        <div class="card">
-          <div class="label">Department</div>
-          <div class="value">${escapeHtml(cert.department)}</div>
-        </div>
-        <div class="card">
-          <div class="label">Grade</div>
-          <div class="value">${escapeHtml(cert.grade)}</div>
-        </div>
-        <div class="card">
-          <div class="label">Internship Duration</div>
-          <div class="value">
-            ${escapeHtml(cert.startDate)} — ${escapeHtml(cert.endDate)}
-          </div>
-        </div>
-        <div class="card">
-          <div class="label">Location</div>
-          <div class="value">${escapeHtml(cert.location)}</div>
-        </div>
-      </div>
-
-      <!-- Skills -->
-      <div class="skills-section">
-        <div class="skills-title">Skills Demonstrated</div>
-        <div class="skills">${skills}</div>
-      </div>
-
-      <!-- Signatures and QR Code -->
-      <div class="bottom-container">
-        <div class="company-seal">
-          ★ PEAK MEDIA ★<br />CERTIFIED<br />2026
-        </div>
-
-        <div class="signature-row">
-          <div class="signature">
-            <div class="signature-name">${escapeHtml(cert.mentor)}</div>
-            <div class="signature-line"></div>
-            <div class="signature-role">
-              Senior Strategist<br />Peak Media Pvt. Ltd.
-            </div>
-          </div>
-
-          <div class="verify">
-            <div class="qr-frame">${qrSvg}</div>
-            <div class="verify-title">Verify Certificate</div>
-            <div class="verify-link">peakmedia.in/verify</div>
-            <div class="verify-id">ID : ${escapeHtml(cert.id)}</div>
-          </div>
-
-          <div class="signature">
-            <div class="signature-name">HR Department</div>
-            <div class="signature-line"></div>
-            <div class="signature-role">
-              Human Resources<br />Peak Media Pvt. Ltd.
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Footer -->
-      <div class="footer">
-        <div class="footer-company">Peak Media Pvt. Ltd.</div>
-        <div class="footer-contact">
-          hello@peakmedia.in &nbsp; • &nbsp; www.peakmedia.in &nbsp; • &nbsp;
-          +91 80 4567 8900
-        </div>
-        <div class="footer-contact">Mumbai • Bengaluru • Jaipur</div>
-        <div class="footer-copy">
-          Certificate Hash : ${escapeHtml(cert.hash)}
-        </div>
-      </div>
-    </div>
-  </body>
-</html>`;
-}
-
-function escapeHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
 }
 
 export async function GET(req: Request) {
@@ -658,27 +352,13 @@ export async function GET(req: Request) {
     );
   }
 
-  const html = await certificateHtml(cert);
+  // Generate QR image buffer
+  const verifyUrl = verifyUrlFor(cert.id);
+  const qrDataUrl = await qrToDataUrl(verifyUrl, { margin: 1, width: 200 });
+  const base64Data = qrDataUrl.replace(/^data:image\/png;base64,/, "");
+  const qrBuffer = Buffer.from(base64Data, "base64");
 
-  let pdfBytes: Uint8Array;
-  const executablePath = await chromium.executablePath();
-  const browser = await puppeteer.launch({
-    args: chromium.args,
-    defaultViewport: chromium.defaultViewport,
-    executablePath: executablePath || undefined,
-    headless: chromium.headless,
-  });
-  try {
-    const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: "domcontentloaded" });
-    pdfBytes = await page.pdf({
-      printBackground: true,
-      preferCSSPageSize: true,
-      margin: { top: 0, right: 0, bottom: 0, left: 0 },
-    });
-  } finally {
-    await browser.close();
-  }
+  const pdfBytes = await generateCertificatePDF(cert, qrBuffer);
 
   const safeName = cert.internName.replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-|-$/g, "");
   const filename = `Peak-Media-Certificate-${safeName}-${cert.id}.pdf`;
