@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { getCertificate, type Certificate } from "@/data/certificates";
 import { qrToSvg, verifyUrlFor } from "@/lib/qr";
-import puppeteer from "puppeteer";
+import chromium from "@sparticuz/chromium";
+import puppeteer from "puppeteer-core";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -660,8 +661,12 @@ export async function GET(req: Request) {
   const html = await certificateHtml(cert);
 
   let pdfBytes: Uint8Array;
+  const executablePath = await chromium.executablePath();
   const browser = await puppeteer.launch({
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    args: chromium.args,
+    defaultViewport: chromium.defaultViewport,
+    executablePath: executablePath || undefined,
+    headless: chromium.headless,
   });
   try {
     const page = await browser.newPage();
