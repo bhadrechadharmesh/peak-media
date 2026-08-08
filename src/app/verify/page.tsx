@@ -319,14 +319,7 @@ function IdleView({
       </form>
 
       <div className="mt-6 flex flex-col items-center gap-2 text-center">
-        <button
-          type="button"
-          onClick={onUseSample}
-          className="inline-flex items-center gap-1.5 text-sm text-electric transition-colors hover:text-electric-soft"
-        >
-          <Sparkles className="h-3.5 w-3.5" />
-          Try a sample certificate
-        </button>
+
         <p className="text-xs text-muted-foreground">
           Format: <span className="font-mono">PM-INT-YYYY-####</span> · Verified
           in real time against Peak Media's registry.
