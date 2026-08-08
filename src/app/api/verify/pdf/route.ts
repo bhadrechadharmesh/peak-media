@@ -453,7 +453,7 @@ function drawFooter(doc: jsPDF, hash: string) {
   doc.setTextColor(...COLORS.textMuted);
   doc.setFontSize(6.5);
   doc.setFont("helvetica", "normal");
-  doc.text("hello@peakmedia.in   •   www.peakmedia.in   •   +91 80 4567 8900", PAGE.width / 2, cursorY, { align: "center" });
+  doc.text("hello@peakmedia.in   •   www.peakmedia.in   •   +91 95303 78007", PAGE.width / 2, cursorY, { align: "center" });
 
   cursorY += 3.5;
   doc.text("Mumbai   •   Bengaluru   •   Jaipur", PAGE.width / 2, cursorY, { align: "center" });

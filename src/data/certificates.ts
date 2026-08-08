@@ -65,7 +65,7 @@ export const CERTIFICATES: Record<string, Certificate> = {
     grade: "A+",
     skills: ["Node.js", "React.js", "Express.js", "MongoDB", "Python","Docker","Redis"],
     status: "Completed",
-    location: "Mumbai",
+    location: "Jaipur",
     hash: "9f3a7c2e1b8d4f60a5e2c7b91d04f8a3",
   },
   "PM-INT-2026-0187": {
@@ -81,7 +81,7 @@ export const CERTIFICATES: Record<string, Certificate> = {
     grade: "A",
     skills: ["Data Science", "Python", "Machine Learning", "Deep Learning", "TensorFlow"],
     status: "Completed",
-    location: "Mumbai",
+    location: "Jaipur",
     hash: "c4e8a01f7b2d9653ac1e0f48b6d27a13",
   },
   "PM-INT-2026-0331": {
@@ -97,7 +97,7 @@ export const CERTIFICATES: Record<string, Certificate> = {
     grade: "A+",
     skills: ["React.js", "Next.js", "TypeScript", "Tailwind CSS", "Git"],
     status: "Completed",
-    location: "Mumbai",
+    location: "Jaipur",
     hash: "2b6f9a04e8c1d735af029b74e6c81d4f",
   },
   "PM-INT-2026-0209": {
@@ -113,7 +113,7 @@ export const CERTIFICATES: Record<string, Certificate> = {
     grade: "A+",
     skills: ["Node.js", "Next.js", "Express.js", "MongoDB", "Python","Docker","Redis"],
     status: "Completed",
-    location: "Mumbai",
+    location: "Jaipur",
     hash: "7d1c4a9f08e6b235c47a91f05d8b6e23",
   },
   "PM-INT-2026-0238": {
@@ -129,7 +129,7 @@ export const CERTIFICATES: Record<string, Certificate> = {
     grade: "A+",
     skills: ["React.js", "Next.js", "TypeScript", "Tailwind CSS", "Git"],
     status: "Completed",
-    location: "Mumbai",
+    location: "Jaipur",
     hash: "5e8a02f7c4b9d163af8e0c47b6d2719a",
   },
     "PM-INT-2026-0269": {
@@ -145,7 +145,7 @@ export const CERTIFICATES: Record<string, Certificate> = {
     grade: "A+",
     skills: ["Node.js", "Next.js", "Express.js", "MongoDB", "Python","Docker","Redis"],
     status: "Completed",
-    location: "Mumbai",
+    location: "Jaipur",
     hash: "5e8a02f7c4b9d163af8e0c47b6d2719a",
   },
 };
